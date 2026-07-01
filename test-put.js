@@ -1,0 +1,1 @@
+fetch('http://localhost:5005/api/stalls/1', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cover_image: 'data:image/png;base64,123' }) }).then(res => res.text()).then(console.log).catch(console.error);

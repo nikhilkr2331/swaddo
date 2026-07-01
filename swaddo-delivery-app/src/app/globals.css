@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #E2401C;
+  --color-primary-hover: #B82F12;
+  --color-accent: #E8A33D;
+  --color-bg-main: #FFF8F0;
+  --color-bg-alt: #FFFFFF;
+  --color-text-primary: #2B2420;
+  --color-text-muted: #6B6259;
+  --color-border-subtle: rgba(43, 36, 32, 0.12);
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+}
+
+body {
+  background-color: theme('colors.bg.main');
+  color: theme('colors.text.primary');
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
