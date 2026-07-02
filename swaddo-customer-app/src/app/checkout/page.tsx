@@ -810,7 +810,7 @@ export default function Checkout() {
                         mapRef.current.setZoom(17.5);
                       }
                     } else {
-                      setCoordinates({lat: 25.611, lng: 85.130});
+                      setCoordinates(25.611, 85.130);
                     }
                   }}
                   className="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-lg text-primary hover:bg-gray-50 transition-colors z-20 border border-border-subtle"
