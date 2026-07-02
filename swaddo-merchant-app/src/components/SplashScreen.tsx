@@ -12,7 +12,7 @@ export default function SplashScreen() {
     setMounted(true);
     const t = setTimeout(() => {
       setShow(false);
-    }, 500); 
+    }, 100); 
     return () => clearTimeout(t);
   }, []);
 
