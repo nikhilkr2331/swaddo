@@ -347,6 +347,19 @@ function ActiveDeliveryContentInner({ mapboxToken }: { mapboxToken: string }) {
       }
     }, 2000);
 
+    // Listen to real-time order updates
+    const orderChannel = `order:${orderId}`;
+    socket.on(orderChannel, (update: any) => {
+      if (update.status === 'cancelled' || update.status === 'declined') {
+        alert("This order has been cancelled by the merchant/customer.");
+        localStorage.removeItem('activeDelivery');
+        router.push('/home');
+      } else if (update.status === 'ready') {
+        // Optionally notify rider that food is ready
+        setOrderData((prev: any) => prev ? { ...prev, isReady: true } : prev);
+      }
+    });
+
     return () => {
       clearInterval(pingInterval);
       backListener.then(listener => listener.remove());
