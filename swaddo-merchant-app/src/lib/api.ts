@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api'
 });
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(function (config) {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('swaddo_merchant_token');
     if (token && config.headers) {
@@ -15,8 +15,10 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  function (response) {
+    return response;
+  },
+  function (error) {
     if (error.response && error.response.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('swaddo_merchant_token');
@@ -25,7 +27,7 @@ api.interceptors.response.use(
     }
     return Promise.reject(error);
   }
-});
+);
 
 // --- Persistent Caching System for 0ms Loads ---
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
