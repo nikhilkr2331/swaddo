@@ -96,7 +96,6 @@ export default function Checkout() {
   const [mapAddressTag, setMapAddressTag] = useState<'Home' | 'Work' | 'Other'>('Home');
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [houseNumber, setHouseNumber] = useState("");
   const [mapSearchQuery, setMapSearchQuery] = useState("");
   const [mapSearchResults, setMapSearchResults] = useState<any[]>([]);
   const [isSearchingMap, setIsSearchingMap] = useState(false);

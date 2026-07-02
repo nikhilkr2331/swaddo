@@ -248,7 +248,7 @@ router.get('/merchant/payouts', authenticate, requireVendor, async (req: AuthReq
       availableBalance: balance,
       history: historyRes.rows.map(r => ({
         date: r.date,
-        amount: parseFloat(r.amount),
+        amount: parseFloat(r.amount) * 0.8,
         orders: parseInt(r.orders),
         status: 'completed'
       }))
