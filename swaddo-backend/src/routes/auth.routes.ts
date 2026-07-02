@@ -65,8 +65,9 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     return res.status(401).json({ message: 'Invalid OTP' });
   }
 
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
     
     // 1. Get or Create User
@@ -116,11 +117,11 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     const token = jwt.sign({ id: user.id, role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user.id, phone, role } });
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     logger.error('Login error', error);
     res.status(500).json({ message: 'Server error during login' });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
