@@ -116,10 +116,10 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
 
     const token = jwt.sign({ id: user.id, role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user.id, phone, role } });
-  } catch (error) {
+  } catch (error: any) {
     if (client) await client.query('ROLLBACK');
     logger.error('Login error', error);
-    res.status(500).json({ message: 'Server error during login' });
+    res.status(500).json({ message: 'Server error: ' + (error.message || 'unknown error') });
   } finally {
     if (client) client.release();
   }
