@@ -15,7 +15,7 @@ export const getSocket = () => {
     socket = io(wsUrl || 'http://localhost:5005', {
       auth: { token },
       autoConnect: false,
-      transports: ['websocket', 'polling'], // Ensure it works on restrictive networks
+      transports: ['websocket'], // Force websocket for 0.1s speed (bypass 5-6s polling lag)
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
