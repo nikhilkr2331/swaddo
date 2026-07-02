@@ -66,21 +66,34 @@ export default function Dashboard() {
 
     const initialize = async () => {
       try {
-          // 1. Fetch initial orders and stats
-          const res = await api.get('/orders?limit=100');
-          if (res.data && res.data.data) {
-            setOrders(res.data.data);
-          }
-
+          // 1. Fetch initial orders and stats concurrently
+          let statsRes: any = null;
           let stallId = null;
+
           try {
-            const statsRes = await api.get('/stalls/merchant/stats');
-            if (statsRes.data) {
-              setStats(statsRes.data);
-              stallId = statsRes.data.stallId;
+            const [ordersRes, sRes, myStallRes] = await Promise.all([
+              api.get('/orders?limit=100'),
+              api.get('/stalls/merchant/stats'),
+              api.get('/stalls/merchant/my-stall')
+            ]);
+            
+            if (ordersRes.data && ordersRes.data.data) {
+              setOrders(ordersRes.data.data);
+            }
+            
+            if (sRes.data) {
+              setStats(sRes.data);
+              stallId = sRes.data.stallId;
+            }
+
+            if (myStallRes.data) {
+               setStallInfo(myStallRes.data);
+               if (myStallRes.data.is_open !== undefined) {
+                 setIsAcceptingOrders(myStallRes.data.is_open);
+               }
             }
           } catch (e) {
-            console.error("Socket error", e);
+            console.error("Initialization error", e);
           }
           
           if (!stallId) {
@@ -89,18 +102,7 @@ export default function Dashboard() {
              return;
           }
 
-          // Fetch full stall info to check if setup is complete
-          try {
-            const myStallRes = await api.get('/stalls/merchant/my-stall');
-            if (myStallRes.data) {
-               setStallInfo(myStallRes.data);
-               if (myStallRes.data.is_open !== undefined) {
-                 setIsAcceptingOrders(myStallRes.data.is_open);
-               }
-            }
-          } catch(e) {}
-          
-          setTimeout(() => setIsInitializing(false), 100);
+          setIsInitializing(false);
 
           stallChannel = `stall:${stallId}:orders`;
 
