@@ -3,6 +3,7 @@ import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import SplashScreen from "@/components/SplashScreen";
 import PWARegister from "@/components/PWARegister";
+import SWRProvider from "@/components/SWRProvider";
 
 export const metadata: Metadata = {
   title: "Swaddo Merchant App",
@@ -23,12 +24,14 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={`font-sans bg-bg-main text-text-primary antialiased`}>
-        <SplashScreen />
-        <main className="pb-20">
-          {children}
-        </main>
-        <PWARegister />
-        <BottomNav />
+        <SWRProvider>
+          <SplashScreen />
+          <main className="pb-20">
+            {children}
+          </main>
+          <PWARegister />
+          <BottomNav />
+        </SWRProvider>
       </body>
     </html>
   );

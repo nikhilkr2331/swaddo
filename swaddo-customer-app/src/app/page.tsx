@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { io } from "socket.io-client";
 import LocationSelector from "@/components/LocationSelector";
+import useSWR from "swr";
 
 const categories = [
   { name: "Biryani", image: "/categories/biryani.png" },
@@ -93,10 +94,18 @@ const formatAddress = (address: string) => {
 export default function Home() {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("Biryani");
-  const [stalls, setStalls] = useState<any[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isVegMode, setIsVegMode] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [userLocation, setUserLocation] = useState({ lat: 25.611, lng: 85.130, ready: false });
+
+  // Setup SWR fetcher
+  const fetcher = (url: string) => api.get(url).then(res => res.data);
+  const { data: stallsData, mutate: mutateStalls } = useSWR(
+    userLocation.ready ? `/stalls?lat=${userLocation.lat}&lng=${userLocation.lng}&vegOnly=${isVegMode}` : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -157,57 +166,51 @@ export default function Home() {
            }
         } catch(e) {}
       }
+      setIsVegMode(localStorage.getItem("swaddo_veg_restaurants_only") === "true");
+      setUserLocation({ lat, lng, ready: true });
     }
-    const isVegRestaurantsOnly = localStorage.getItem("swaddo_veg_restaurants_only") === "true";
+  }, []);
 
-    // 1. Fetch initial stalls
-    api.get(`/stalls?lat=${lat}&lng=${lng}&vegOnly=${isVegRestaurantsOnly}`)
-      .then(res => {
-        const dataArray = res.data?.data || [];
-        const fetchedStalls = dataArray.map((s: any) => {
-          let dist = s.distance ? parseFloat(s.distance) : (1 + (parseInt(s.id) % 5));
-          
-          if (!s.location || s.location === "Not Set") {
-            dist = 0;
-          }
+  // Process stalls from SWR cache
+  const stalls = stallsData?.data ? stallsData.data.map((s: any) => {
+    let dist = s.distance ? parseFloat(s.distance) : (1 + (parseInt(s.id) % 5));
+    if (!s.location || s.location === "Not Set") dist = 0;
+    const travelTime = Math.round(dist * 5); // 5 mins per km roughly
+    const prepTime = s.prep_time || 15;
+    const totalDeliveryTime = travelTime + prepTime;
 
-          const travelTime = Math.round(dist * 5); // 5 mins per km roughly
-          const prepTime = s.prep_time || 15;
-          const totalDeliveryTime = travelTime + prepTime;
+    return {
+      id: s.id.toString(),
+      name: s.name,
+      address: s.location,
+      rating: s.rating,
+      ratingsCount: s.rating_count ? `${s.rating_count} RATINGS` : "120+ RATINGS",
+      time: `${s.opening_time || '09:00 AM'} - ${s.closing_time || '10:00 PM'}`,
+      category: s.tags || "North Indian, Biryani", 
+      available: s.is_open,
+      image: s.cover_image || `https://picsum.photos/seed/${s.id}/400/250`,
+      offer: s.offer_text || "",
+      priceForTwo: `₹${(parseInt(s.id) % 3 + 1) * 150} for one`,
+      deliveryTime: `${totalDeliveryTime} mins`,
+      distance: `${dist.toFixed(1)} km`
+    };
+  }) : [];
 
-          return {
-            id: s.id.toString(),
-            name: s.name,
-            address: s.location,
-            rating: s.rating,
-            ratingsCount: s.rating_count ? `${s.rating_count} RATINGS` : "120+ RATINGS",
-            time: `${s.opening_time || '09:00 AM'} - ${s.closing_time || '10:00 PM'}`,
-            category: s.tags || "North Indian, Biryani", 
-            available: s.is_open,
-            image: s.cover_image || `https://picsum.photos/seed/${s.id}/400/250`,
-            offer: s.offer_text || "",
-            priceForTwo: `₹${(parseInt(s.id) % 3 + 1) * 150} for one`,
-            deliveryTime: `${totalDeliveryTime} mins`,
-            distance: `${dist.toFixed(1)} km`
-          };
-        });
-        setStalls(fetchedStalls);
-      })
-      .catch(console.error);
-
+  useEffect(() => {
     // 2. Setup live socket listener for real-time updates
-    let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket", "polling"], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
+    let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket"], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
     socket.on("stall_update", (updatedStall) => {
-      setStalls(prev => prev.map(stall => 
-        stall.id === updatedStall.id.toString() ? {
-          ...stall,
-          name: updatedStall.name,
-          address: updatedStall.location,
-          time: `${updatedStall.opening_time || '09:00 AM'} - ${updatedStall.closing_time || '10:00 PM'}`,
-          available: updatedStall.is_open,
-          image: updatedStall.cover_image || stall.image
-        } : stall
-      ));
+      mutateStalls((currentData: any) => {
+        if (!currentData || !currentData.data) return currentData;
+        const prev = currentData.data;
+        const index = prev.findIndex((s: any) => s.id == updatedStall.id);
+        if (index !== -1) {
+          const newData = [...prev];
+          newData[index] = { ...newData[index], ...updatedStall };
+          return { ...currentData, data: newData };
+        }
+        return currentData;
+      }, false);
     });
 
     return () => {

@@ -8,6 +8,7 @@ import { CartProvider } from "@/context/CartContext";
 import { LocationProvider } from "@/context/LocationContext";
 import SplashScreen from "@/components/SplashScreen";
 import PWARegister from "@/components/PWARegister";
+import SWRProvider from "@/components/SWRProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const poppins = Poppins({ 
@@ -34,10 +35,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${poppins.variable}`}>
-        <LocationProvider>
-          <CartProvider>
-            {/* Top Nav for Desktop */}
-            <TopNav />
+        <SWRProvider>
+          <LocationProvider>
+            <CartProvider>
+              {/* Top Nav for Desktop */}
+              <TopNav />
             
             {/* Main Content Area */}
             <main className="pb-20 xl:pb-0 xl:pt-20 min-h-screen relative">
@@ -52,6 +54,7 @@ export default function RootLayout({
             <BottomNav />
           </CartProvider>
         </LocationProvider>
+        </SWRProvider>
       </body>
     </html>
   );
