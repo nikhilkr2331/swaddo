@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +21,39 @@ export default function Dashboard() {
   const [activeOrderDetails, setActiveOrderDetails] = useState<any>(null);
   const router = useRouter();
   const alarmAudio = useRef<HTMLAudioElement | null>(null);
+
+  const activeTabCounts = useMemo(() => {
+    const todayStr = new Date().toDateString();
+    const counts = { new: 0, preparing: 0, ready: 0, completed: 0, past: 0 };
+    orders.forEach(o => {
+      if (o.status === 'pending') counts.new++;
+      else if (o.status === 'preparing') counts.preparing++;
+      else if (o.status === 'ready') counts.ready++;
+      else if (['delivered', 'cancelled', 'declined'].includes(o.status)) {
+        const orderDateStr = o.created_at ? new Date(o.created_at).toDateString() : o.time;
+        if (orderDateStr === todayStr) counts.completed++;
+        else counts.past++;
+      }
+    });
+    return counts as Record<string, number>;
+  }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    const todayStr = new Date().toDateString();
+    return orders.filter(o => {
+      if (activeTab === 'new') return o.status === 'pending';
+      if (activeTab === 'preparing') return o.status === 'preparing';
+      if (activeTab === 'ready') return o.status === 'ready';
+      
+      const isPastStatus = ['delivered', 'cancelled', 'declined'].includes(o.status);
+      if (!isPastStatus) return false;
+      
+      const orderDateStr = o.created_at ? new Date(o.created_at).toDateString() : o.time;
+      if (activeTab === 'completed') return orderDateStr === todayStr;
+      if (activeTab === 'past') return orderDateStr !== todayStr;
+      return false;
+    });
+  }, [orders, activeTab]);
 
   useEffect(() => {
     // Initialize audio
@@ -373,14 +406,7 @@ export default function Dashboard() {
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-4 -mx-2 px-2">
         {(['new', 'preparing', 'ready', 'completed', 'past'] as const).map((tab) => {
           const isActive = activeTab === tab;
-          const count = orders.filter(o => {
-            if (tab === 'new') return o.status === 'pending';
-            if (tab === 'preparing') return o.status === 'preparing';
-            if (tab === 'ready') return o.status === 'ready';
-            if (tab === 'completed') return ['delivered', 'cancelled', 'declined'].includes(o.status) && new Date(o.created_at).toDateString() === new Date().toDateString();
-            if (tab === 'past') return ['delivered', 'cancelled', 'declined'].includes(o.status) && new Date(o.created_at).toDateString() !== new Date().toDateString();
-            return false;
-          }).length;
+          const count = activeTabCounts[tab];
           
           const labels: Record<string, string> = { new: 'New', preparing: 'Preparing', ready: 'Out for Delivery', completed: 'Completed', past: 'Past' };
           
@@ -402,14 +428,6 @@ export default function Dashboard() {
       
       <div className="space-y-4">
         {(() => {
-          const filteredOrders = orders.filter(o => {
-            if (activeTab === 'new') return o.status === 'pending';
-            if (activeTab === 'preparing') return o.status === 'preparing';
-            if (activeTab === 'ready') return o.status === 'ready';
-            if (activeTab === 'completed') return ['delivered', 'cancelled', 'declined'].includes(o.status) && new Date(o.created_at).toDateString() === new Date().toDateString();
-            if (activeTab === 'past') return ['delivered', 'cancelled', 'declined'].includes(o.status) && new Date(o.created_at).toDateString() !== new Date().toDateString();
-            return false;
-          });
 
           if (filteredOrders.length === 0) {
             return (
