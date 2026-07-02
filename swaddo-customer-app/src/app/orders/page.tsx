@@ -76,6 +76,22 @@ export default function Orders() {
             };
           });
           setOrders(mapped);
+
+          // Listen to real-time updates for active orders
+          const socketUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:5005";
+          const socket = io(socketUrl);
+          
+          mapped.forEach((o: any) => {
+            if (!['delivered', 'cancelled', 'declined'].includes(o.status)) {
+              socket.on(`order:${o.id}`, (update: any) => {
+                setOrders(prev => prev.map(order => order.id === update.id || order.id.toString() === update.id ? { ...order, status: update.status } : order));
+              });
+            }
+          });
+          
+          // Cleanup socket on unmount
+          return () => socket.disconnect();
+
       } catch (err) {
         console.error("Failed to fetch orders", err);
       } finally {
@@ -83,17 +99,11 @@ export default function Orders() {
       }
     };
     
-    fetchOrders();
-
-    const socketUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:5005";
-    const socket = io(socketUrl);
-    
-    socket.on("order_status_update", (update: any) => {
-      setOrders(prev => prev.map(o => o.id === update.id ? { ...o, status: update.status } : o));
-    });
+    let cleanupSocket: any;
+    fetchOrders().then(cleanup => cleanupSocket = cleanup);
 
     return () => {
-      socket.disconnect();
+      if (cleanupSocket) cleanupSocket();
     };
   }, []);
 
