@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_in_pro
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 5,
+  limit: 100,
   message: { message: 'Too many OTP requests from this IP, please try again after 15 minutes' }
 });
 
