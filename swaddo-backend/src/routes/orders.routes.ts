@@ -401,7 +401,7 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response, next: N
                WHERE oi.order_id = o.id
              ) as items_summary,
              da.earnings_amount,
-             u2.name as rider_name, u2.phone as rider_phone, dp.vehicle_details as rider_vehicle
+             u2.name as rider_name, u2.phone as rider_phone, dp.vehicle_details as rider_vehicle, u2.id as rider_user_id
       FROM orders o
       LEFT JOIN stalls s ON o.stall_id = s.id
       LEFT JOIN users u_vendor ON s.vendor_id = u_vendor.id
@@ -447,8 +447,22 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response, next: N
         name: r.rider_name,
         phone: r.rider_phone || 'N/A',
         vehicle: r.rider_vehicle || 'Not provided'
-      } : null
+      } : null,
+      riderLocation: null as any
     };
+
+    if (r.rider_name && r.rider_user_id) {
+       try {
+         const { redis } = require('../redis');
+         const locStr = await redis.get(`rider_loc:${r.rider_user_id}`);
+         if (locStr) {
+           const parsed = JSON.parse(locStr);
+           formatted.riderLocation = { lat: parsed.latitude, lng: parsed.longitude };
+         }
+       } catch (e) {
+           console.error("Redis fetch error for rider_loc", e);
+       }
+    }
 
     res.json({ data: formatted });
   } catch (err) {
