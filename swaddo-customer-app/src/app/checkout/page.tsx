@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, MapPin, Wallet, CreditCard, Banknote, ChevronDown, ChevronUp, Loader2, Info, X, Search, LocateFixed, Check } from "lucide-react";
+import { ArrowLeft, MapPin, Wallet, CreditCard, Banknote, ChevronDown, ChevronUp, Loader2, Info, X, Search, LocateFixed, Check, Home, Briefcase } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
