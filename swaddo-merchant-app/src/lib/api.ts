@@ -27,9 +27,48 @@ api.interceptors.response.use(
   }
 );
 
-// --- In-Memory Caching System ---
-const cache = new Map<string, { data: any, timestamp: number }>();
+// --- Persistent Caching System ---
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+const getCache = (key: string) => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const item = localStorage.getItem('swaddo_api_cache_' + key);
+    if (!item) return null;
+    const parsed = JSON.parse(item);
+    if (Date.now() - parsed.timestamp > CACHE_TTL) {
+      localStorage.removeItem('swaddo_api_cache_' + key);
+      return null;
+    }
+    return parsed.data;
+  } catch (e) {
+    return null;
+  }
+};
+
+const setCache = (key: string, data: any) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('swaddo_api_cache_' + key, JSON.stringify({
+      data,
+      timestamp: Date.now()
+    }));
+  } catch (e) {
+    // Ignore quota errors
+  }
+};
+
+const clearCache = () => {
+  if (typeof window === 'undefined') return;
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('swaddo_api_cache_')) {
+      keysToRemove.push(k);
+    }
+  }
+  keysToRemove.forEach(k => localStorage.removeItem(k));
+};
 
 const originalGet = api.get;
 const originalPost = api.post;
@@ -39,12 +78,18 @@ const originalPatch = api.patch;
 
 api.get = async function(url: string, config?: any) {
   if (!config || config.cache !== false) {
-    const key = url + JSON.stringify(config?.params || {});
-    const cachedItem = cache.get(key);
+    const key = btoa(url + JSON.stringify(config?.params || {}));
     
-    if (cachedItem && (Date.now() - cachedItem.timestamp < CACHE_TTL)) {
+    // 1. Try returning cached data immediately
+    const cachedData = getCache(key);
+    if (cachedData) {
+      // Still fetch in background to keep data fresh (Stale-While-Revalidate pattern)
+      originalGet.call(this, url, config).then((response: any) => {
+        setCache(key, response.data);
+      }).catch(() => {});
+      
       return Promise.resolve({ 
-        data: cachedItem.data, 
+        data: cachedData, 
         status: 200, 
         statusText: 'OK', 
         headers: {}, 
@@ -52,14 +97,13 @@ api.get = async function(url: string, config?: any) {
       } as any);
     }
     
+    // 2. No cache, fetch and store
     const response = await originalGet.call(this, url, config);
-    cache.set(key, { data: response.data, timestamp: Date.now() });
+    setCache(key, response.data);
     return response;
   }
   return originalGet.call(this, url, config);
 } as any;
-
-const clearCache = () => cache.clear();
 
 // Invalidate cache on mutations
 api.post = async function(url: string, data?: any, config?: any) { clearCache(); return originalPost.call(this, url, data, config); } as any;
