@@ -12,6 +12,7 @@ export default function MenuPage() {
   useAuth();
   const [stallId, setStallId] = useState<string | null>(null);
   const [items, setItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null); // For inline price editing
@@ -55,6 +56,8 @@ export default function MenuPage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -211,7 +214,15 @@ export default function MenuPage() {
 
       {/* Menu List */}
       <div className="flex-1 p-6 space-y-8 max-w-md mx-auto w-full">
-        {Object.keys(groupedItems).length === 0 && !isAdding && (
+        {isLoading && (
+          <div className="space-y-4 mt-4">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 h-24 animate-pulse"></div>
+            ))}
+          </div>
+        )}
+
+        {!isLoading && Object.keys(groupedItems).length === 0 && !isAdding && (
           <div className="flex flex-col items-center justify-center mt-20 opacity-50">
             <Edit2 size={48} className="mb-4 text-text-muted" />
             <p className="text-center font-bold text-lg text-text-primary">No items yet</p>
@@ -219,7 +230,7 @@ export default function MenuPage() {
           </div>
         )}
 
-        {Object.keys(groupedItems).map(cat => (
+        {!isLoading && Object.keys(groupedItems).map(cat => (
           <div key={cat} id={`cat-${cat}`} className="scroll-mt-[150px]">
             <h2 className="font-heading font-bold text-xl text-text-primary mb-4 flex items-center justify-between">
               {cat}

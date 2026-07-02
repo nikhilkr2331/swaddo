@@ -192,8 +192,17 @@ export default function Dashboard() {
 
   if (isInitializing) {
     return (
-      <div className="flex flex-col min-h-screen pt-8 px-6 pb-24 max-w-md mx-auto items-center justify-center bg-bg-main">
-        {/* Blank state to act as a seamless transition from Splash Screen */}
+      <div className="flex flex-col min-h-screen pt-8 px-6 pb-24 max-w-md mx-auto bg-bg-main">
+        <div className="h-8 w-48 bg-gray-200 rounded-md animate-pulse mb-6"></div>
+        <div className="flex gap-2 mb-6">
+          <div className="h-10 w-24 bg-gray-200 rounded-full animate-pulse"></div>
+          <div className="h-10 w-24 bg-gray-200 rounded-full animate-pulse"></div>
+        </div>
+        <div className="space-y-4">
+          {[1,2,3].map(i => (
+            <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 h-32 animate-pulse"></div>
+          ))}
+        </div>
       </div>
     );
   }
