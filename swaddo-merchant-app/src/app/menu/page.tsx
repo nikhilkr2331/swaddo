@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import { Plus, Edit2, Check, X, Camera, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import useSWR from "swr";
 
 const PRESET_CATEGORIES = ["Starters", "Main Course", "Beverages", "Desserts", "Snacks", "Chaat", "Combos", "Custom"];
 const PRESET_TAGS = ["Bestseller", "Chef's Special", "New", "Spicy", "Healthy"];
 
 export default function MenuPage() {
   useAuth();
-  const [stallId, setStallId] = useState<string | null>(null);
   const [items, setItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -41,25 +41,28 @@ export default function MenuPage() {
     photos: [] as string[] // mock array of urls
   });
 
-  useEffect(() => {
-    fetchStallAndMenu();
-  }, []);
+  const { data: stallData } = useSWR('/stalls/merchant/my-stall', async (url) => {
+    const res = await api.get(url);
+    return res.data;
+  });
+  
+  const stallId = stallData?.id || null;
 
-  const fetchStallAndMenu = async () => {
-    try {
-      const stallRes = await api.get('/stalls/merchant/my-stall');
-      if (stallRes.data && stallRes.data.id) {
-        const id = stallRes.data.id;
-        setStallId(id);
-        const res = await api.get(`/stalls/${id}/menu`);
-        setItems(res.data);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
+  const { data: menuData, error, isLoading: isMenuLoading, mutate: mutateMenu } = useSWR(
+    stallId ? `/stalls/${stallId}/menu` : null,
+    async (url) => {
+      const res = await api.get(url);
+      return res.data;
+    },
+    { revalidateOnFocus: true }
+  );
+
+  useEffect(() => {
+    if (menuData) {
+      setItems(menuData);
       setIsLoading(false);
     }
-  };
+  }, [menuData]);
 
   const handleAddItem = async () => {
     // 1. Calculate final category

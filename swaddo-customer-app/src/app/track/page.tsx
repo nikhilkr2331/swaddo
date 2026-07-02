@@ -458,8 +458,7 @@ function OrderTrackingContent() {
     fetchOrder();
 
     // 2. Listen for live updates on targeted channel
-    const socketUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:5005";
-    const socket = io(socketUrl);
+    let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket", "polling"], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
 
     const orderChannel = `order:${orderId}`;
     socket.on("connect", () => {
@@ -699,3 +698,4 @@ export default function OrderTracking() {
     </Suspense>
   )
 }
+

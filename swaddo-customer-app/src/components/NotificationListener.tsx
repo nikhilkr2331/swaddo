@@ -9,8 +9,7 @@ export default function NotificationListener() {
   const [notification, setNotification] = useState<{title: string; message: string} | null>(null);
 
   useEffect(() => {
-    const socketUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:5005";
-    const socket = io(socketUrl);
+    let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket", "polling"], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
 
     socket.on("connect", () => {
       console.log("Connected to notification server");
@@ -61,3 +60,4 @@ export default function NotificationListener() {
     </AnimatePresence>
   );
 }
+

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Clock, XCircle, Store, ChefHat, PackageCheck, AlertCircle, MapPin, Navigation, BellRing } from "lucide-react";
@@ -11,16 +12,30 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function Dashboard() {
   useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
+  
+  // SWR Data Fetching
+  const fetcher = (url: string) => api.get(url).then(res => res.data);
+  const { data: stallRes } = useSWR('/stalls/merchant/my-stall', fetcher);
+  const { data: statsRes, mutate: mutateStats } = useSWR('/stalls/merchant/stats', fetcher);
+  const { data: ordersRes, mutate: mutateOrders } = useSWR('/orders?limit=100', fetcher);
+
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
   const [incomingOrder, setIncomingOrder] = useState<any>(null);
-  const [stats, setStats] = useState({ ordersToday: 0, revenueToday: 0, avgRating: 0 });
   const [stallInfo, setStallInfo] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'new'|'preparing'|'ready'|'completed'|'past'>('new');
   const [activeOrderDetails, setActiveOrderDetails] = useState<any>(null);
   const router = useRouter();
   const alarmAudio = useRef<HTMLAudioElement | null>(null);
+
+  const orders = ordersRes?.data || [];
+  const stats = statsRes || { ordersToday: 0, revenueToday: 0, avgRating: 0 };
+  const isInitializing = !ordersRes || !statsRes || !stallRes;
+
+  useEffect(() => {
+    if (stallRes?.is_open !== undefined) {
+      setIsAcceptingOrders(stallRes.is_open);
+    }
+  }, [stallRes]);
 
   const activeTabCounts = useMemo(() => {
     const todayStr = new Date().toDateString();
@@ -60,108 +75,60 @@ export default function Dashboard() {
     alarmAudio.current = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
     alarmAudio.current.loop = true;
 
-
     let socket: any;
     let stallChannel: string = "";
-
-    const initialize = async () => {
-      try {
-          // 1. Fetch initial orders and stats concurrently
-          let statsRes: any = null;
-          let stallId = null;
-
-          try {
-            const [ordersRes, sRes, myStallRes] = await Promise.all([
-              api.get('/orders?limit=100'),
-              api.get('/stalls/merchant/stats'),
-              api.get('/stalls/merchant/my-stall')
-            ]);
-            
-            if (ordersRes.data && ordersRes.data.data) {
-              setOrders(ordersRes.data.data);
-            }
-            
-            if (sRes.data) {
-              setStats(sRes.data);
-              stallId = sRes.data.stallId;
-            }
-
-            if (myStallRes.data) {
-               setStallInfo(myStallRes.data);
-               if (myStallRes.data.is_open !== undefined) {
-                 setIsAcceptingOrders(myStallRes.data.is_open);
-               }
-            }
-          } catch (e) {
-            console.error("Initialization error", e);
-          }
-          
-          if (!stallId) {
-             console.error("No stall ID found for this vendor");
-             setIsInitializing(false);
-             return;
-          }
-
-          setIsInitializing(false);
-
-          stallChannel = `stall:${stallId}:orders`;
-
-          // 2. Connect to targeted socket channel
-          socket = connectSocket();
-          socket.off(stallChannel); // Remove any old listeners in strict mode
-          socket.on("connect", () => {
-            console.log(`Merchant socket connected to ${stallChannel}`);
-          });
-
-          socket.on(stallChannel, (update: any) => {
-            setOrders(prev => {
-              // Match by either string 'id' (legacy) or integer 'orderId'
-              const existingIndex = prev.findIndex(o => o.id == update.id || o.id == update.orderId);
-              
-              if (existingIndex >= 0) {
-                // Status Update
-                const newOrders = [...prev];
-                const oldOrder = newOrders[existingIndex];
-                newOrders[existingIndex] = { ...oldOrder, status: update.status };
-                
-                // Add to revenue if it just got delivered
-                if (oldOrder.status !== 'delivered' && update.status === 'delivered') {
-                   setStats(s => ({
-                     ...s,
-                     revenueToday: s.revenueToday + (Number(oldOrder.total) || 0)
-                   }));
-                }
-                
-                // If the updated order was the incoming order and it got cancelled or something, clear it
-                if (incomingOrder && incomingOrder.id === update.id && update.status !== 'pending') {
-                   setIncomingOrder(null);
-                   if (alarmAudio.current) { alarmAudio.current.pause(); alarmAudio.current.currentTime = 0; }
-                }
-                
-                return newOrders;
-              } else {
-                // New Order
-                if (update.status === 'pending') {
-                  setIncomingOrder(update);
-                  if (alarmAudio.current) {
-                    alarmAudio.current.play().catch(e => console.log('Audio play blocked:', e));
-                  }
-                  setStats(s => ({
-                    ...s,
-                    ordersToday: s.ordersToday + 1
-                    // Do NOT add to revenueToday here! Revenue is only added after delivery.
-                  }));
-                }
-                return [update, ...prev];
-              }
-            });
-          });
-      } catch (err) {
-        console.error("Failed to initialize dashboard", err);
-      }
-    };
     
-    initialize();
+    if (stallRes?.id) {
+      const stallId = stallRes.id;
+      stallChannel = `stall:${stallId}:orders`;
+      
+      socket = connectSocket();
+      socket.off(stallChannel); // Remove any old listeners in strict mode
+      socket.on("connect", () => {
+        console.log(`Merchant socket connected to ${stallChannel}`);
+      });
+
+      socket.on(stallChannel, (update: any) => {
+        // Update Orders Cache
+        mutateOrders((currentData: any) => {
+          if (!currentData || !currentData.data) return currentData;
+          const prev = currentData.data;
+          const existingIndex = prev.findIndex((o: any) => o.id == update.id || o.id == update.orderId);
+          
+          if (existingIndex >= 0) {
+            const newOrders = [...prev];
+            const oldOrder = newOrders[existingIndex];
+            newOrders[existingIndex] = { ...oldOrder, status: update.status };
+            
+            // Add to revenue if it just got delivered
+            if (oldOrder.status !== 'delivered' && update.status === 'delivered') {
+               mutateStats((s: any) => {
+                 if (!s) return s;
+                 return { ...s, revenueToday: (s.revenueToday || 0) + (Number(oldOrder.total) || 0) };
+               }, false);
+            }
+            
+            if (incomingOrder && incomingOrder.id === update.id && update.status !== 'pending') {
+               setIncomingOrder(null);
+               if (alarmAudio.current) { alarmAudio.current.pause(); alarmAudio.current.currentTime = 0; }
+            }
+            return { ...currentData, data: newOrders };
+          } else {
+            if (update.status === 'pending') {
+              setIncomingOrder(update);
+              if (alarmAudio.current) {
+                alarmAudio.current.play().catch((e: any) => console.log('Audio play blocked:', e));
+              }
+              mutateStats((s: any) => {
+                if (!s) return s;
+                return { ...s, ordersToday: (s.ordersToday || 0) + 1 };
+              }, false);
+            }
+            return { ...currentData, data: [update, ...prev] };
+          }
+        }, false);
+      });
+    }
 
     return () => {
       if (socket && stallChannel) {
@@ -169,7 +136,7 @@ export default function Dashboard() {
         disconnectSocket();
       }
     };
-  }, []);
+  }, [stallRes?.id]);
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     // Stop alarm if accepting/rejecting the incoming order
@@ -179,7 +146,13 @@ export default function Dashboard() {
     }
     
     // Optimistically update UI
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    mutateOrders((currentData: any) => {
+      if (!currentData || !currentData.data) return currentData;
+      return {
+        ...currentData,
+        data: currentData.data.map((o: any) => o.id === orderId ? { ...o, status: newStatus } : o)
+      };
+    }, false);
     
     // Call backend
     try {

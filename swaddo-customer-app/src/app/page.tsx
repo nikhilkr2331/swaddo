@@ -196,8 +196,7 @@ export default function Home() {
       .catch(console.error);
 
     // 2. Setup live socket listener for real-time updates
-    const socketUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:5005";
-    const socket = io(socketUrl);
+    let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket", "polling"], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
     socket.on("stall_update", (updatedStall) => {
       setStalls(prev => prev.map(stall => 
         stall.id === updatedStall.id.toString() ? {
@@ -485,3 +484,4 @@ export default function Home() {
     </div>
   );
 }
+
