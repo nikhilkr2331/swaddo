@@ -13,7 +13,7 @@ export default function SplashScreen() {
     // Increase time slightly so the animation can play out fully
     const t = setTimeout(() => {
       setShow(false);
-    }, 2000); 
+    }, 500); 
     return () => clearTimeout(t);
   }, []);
 
