@@ -14,7 +14,7 @@ export default function SplashScreen() {
     // Increased timeout slightly for a better visual experience based on user feedback
     const t = setTimeout(() => {
       setShow(false);
-    }, 2300);
+    }, 500);
     return () => clearTimeout(t);
   }, []);
 
