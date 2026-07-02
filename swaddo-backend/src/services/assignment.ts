@@ -35,6 +35,7 @@ export class AssignmentManager {
   private io: Server | null = null;
   private onlineRiders: Map<string, OnlineRider> = new Map();
   private activeJobs: Map<string, Set<string>> = new Map();
+  private jobPayloads: Map<string, any> = new Map();
   private jobTimers: Map<string, NodeJS.Timeout> = new Map();
 
   init(io: Server) {
@@ -44,6 +45,7 @@ export class AssignmentManager {
   registerRider(riderId: string, socketId: string, lat?: number, lng?: number) {
     this.onlineRiders.set(riderId, { socketId, isBusy: false, lat, lng });
     console.log(`[Assignment] Rider ${riderId} registered with socket ${socketId} at ${lat}, ${lng}`);
+    this.checkPendingJobsForRider(riderId);
   }
 
   updateRiderLocation(riderId: string, lat: number, lng: number) {
@@ -51,6 +53,21 @@ export class AssignmentManager {
     if (rider) {
       rider.lat = lat;
       rider.lng = lng;
+      this.checkPendingJobsForRider(riderId);
+    }
+  }
+
+  private checkPendingJobsForRider(riderId: string) {
+    const rider = this.onlineRiders.get(riderId);
+    if (!rider || rider.isBusy || !rider.lat || !rider.lng) return;
+
+    for (const [jobId, payload] of this.jobPayloads.entries()) {
+      const notified = this.activeJobs.get(jobId);
+      if (notified && !notified.has(riderId)) {
+         console.log(`[Assignment] Newly available rider ${riderId} detected for active job ${jobId}. Retrying broadcast...`);
+         this.broadcastJob(payload);
+         break; // Only try assigning one job at a time to this rider
+      }
     }
   }
 
@@ -67,6 +84,7 @@ export class AssignmentManager {
   startJobRing(jobPayload: any, _ringDurationMs: number = 120000) {
     const jobId = jobPayload.id;
     this.activeJobs.set(jobId, new Set());
+    this.jobPayloads.set(jobId, jobPayload);
     this.broadcastJob(jobPayload);
   }
 
@@ -189,6 +207,7 @@ export class AssignmentManager {
     }
 
     this.activeJobs.delete(jobId);
+    this.jobPayloads.delete(jobId);
     
     const accepter = this.onlineRiders.get(acceptedByRiderId);
     if (accepter) accepter.isBusy = true;
@@ -201,6 +220,7 @@ export class AssignmentManager {
     if (rider) {
       rider.isBusy = false;
       console.log(`[Assignment] Rider ${riderId} marked as available.`);
+      this.checkPendingJobsForRider(riderId);
     }
   }
 
@@ -221,6 +241,7 @@ export class AssignmentManager {
     }
     
     this.activeJobs.delete(jobId);
+    this.jobPayloads.delete(jobId);
   }
 }
 
