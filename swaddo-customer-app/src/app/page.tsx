@@ -387,7 +387,26 @@ export default function Home() {
             initial="hidden"
             animate="show"
           >
-            {stalls.filter(stall => stall.category.toLowerCase().includes(activeCategory.toLowerCase())).length === 0 ? (
+             {isLoading ? (
+              // Skeleton Loaders
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+                  <div className="h-48 sm:h-44 w-full bg-gray-200"></div>
+                  <div className="p-4 space-y-3">
+                    <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                    <div className="flex justify-between">
+                      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    </div>
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                    <div className="pt-3 border-t border-gray-100 flex gap-2">
+                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : stalls.filter(stall => stall.category.toLowerCase().includes(activeCategory.toLowerCase())).length === 0 ? (
               <div className="col-span-full py-10 text-center flex flex-col items-center">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                    <Search className="text-gray-400" size={32} />
@@ -399,12 +418,12 @@ export default function Home() {
               stalls
                 .filter(stall => stall.category.toLowerCase().includes(activeCategory.toLowerCase()))
                 .map((stall) => (
-              <motion.div key={stall.id} variants={itemVariants}>
+              <motion.div key={stall.id} variants={itemVariants} whileTap={{ scale: 0.98 }}>
                 <Link href={`/stall?id=${stall.id}`} className="block group">
-                  <div className={`flex flex-col bg-white rounded-[24px] shadow-sm border border-gray-100 transition-all duration-300 xl:hover:shadow-xl xl:hover:-translate-y-1 overflow-hidden ${!stall.available ? "opacity-70 grayscale-[0.3]" : ""}`}>
+                  <div className={`flex flex-col bg-white/80 backdrop-blur-md rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white/40 overflow-hidden ${!stall.available ? "opacity-70 grayscale-[0.3]" : ""}`}>
                     
                     {/* Image Section */}
-                    <div className="relative h-48 sm:h-44 w-full shrink-0 overflow-hidden">
+                    <div className="relative h-48 sm:h-44 w-full shrink-0 overflow-hidden rounded-t-3xl">
                       <Image src={stall.image} alt={stall.name} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
                       
                       {/* Gradient Overlay for Offer text contrast */}
@@ -422,16 +441,16 @@ export default function Home() {
                       <div className="absolute top-3 right-3">
                          <button 
                            onClick={(e) => toggleFavorite(stall, e)}
-                           className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-800 hover:bg-white hover:text-red-500 transition-all active:scale-95 shadow-sm z-20 relative"
+                           className="w-8 h-8 rounded-full bg-white/50 backdrop-blur-md border border-white/60 flex items-center justify-center text-gray-800 hover:bg-white hover:text-red-500 transition-all active:scale-95 shadow-sm z-20 relative"
                          >
-                           <Heart size={16} className={favorites.includes(stall.id) ? "fill-red-500 text-red-500" : "text-gray-400"} />
+                           <Heart size={16} className={favorites.includes(stall.id) ? "fill-red-500 text-red-500" : "text-white drop-shadow-md"} />
                          </button>
                       </div>
 
                       {/* Offer Text */}
                       {stall.offer && (
                         <div className="absolute bottom-3 left-4 flex items-center gap-1.5 text-white">
-                          <Percent size={18} className="text-blue-300 fill-blue-400" />
+                          <Percent size={18} className="text-blue-300 fill-blue-400 drop-shadow-md" />
                           <span className="font-heading font-extrabold text-xl tracking-tight leading-none drop-shadow-md">
                             {stall.offer}
                           </span>
@@ -440,28 +459,28 @@ export default function Home() {
                     </div>
 
                     {/* Content Section */}
-                    <div className="p-4">
+                    <div className="p-4 bg-white/70 backdrop-blur-lg">
                       <div className="flex justify-between items-start mb-1.5">
-                        <h3 className="font-heading font-bold text-lg text-text-primary line-clamp-1 group-hover:text-primary transition-colors">{stall.name}</h3>
+                        <h3 className="font-heading font-bold text-lg text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">{stall.name}</h3>
                         
-                        {/* Rating Pill - Swiggy/Zomato style */}
+                        {/* Rating Pill */}
                         <div className="flex flex-col items-center shrink-0 ml-3">
                           <div className="flex items-center gap-1 bg-green-700 px-1.5 py-0.5 rounded-md shadow-sm mb-0.5">
                             <span className="text-xs font-bold text-white">{stall.rating}</span>
                             <Star size={10} className="fill-white text-white" />
                           </div>
-                          <span className="text-[8px] font-bold text-text-muted uppercase tracking-wider">{stall.ratingsCount}</span>
+                          <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{stall.ratingsCount}</span>
                         </div>
                       </div>
                       
-                      <div className="flex justify-between items-center text-text-muted text-sm font-medium mb-1">
+                      <div className="flex justify-between items-center text-gray-500 text-sm font-medium mb-1">
                         <p className="line-clamp-1">{stall.category}</p>
                         <p className="shrink-0 ml-2">{stall.priceForTwo}</p>
                       </div>
                       
-                      <p className="text-text-muted text-xs font-medium mb-2 line-clamp-1">{formatAddress(stall.address)}</p>
+                      <p className="text-gray-500 text-xs font-medium mb-2 line-clamp-1">{formatAddress(stall.address)}</p>
                       
-                      <div className="flex items-center gap-3 text-text-muted text-xs font-bold mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-3 text-gray-500 text-xs font-bold mt-3 pt-3 border-t border-gray-100/60">
                         <div className="flex items-center gap-1.5">
                           <Clock size={14} className="text-gray-400" />
                           <span>{stall.deliveryTime}</span>
@@ -472,14 +491,15 @@ export default function Home() {
                           <span>{stall.distance}</span>
                         </div>
                         <div className="w-1 h-1 rounded-full bg-gray-300"></div>
-                        <span>Live Tracking</span>
+                        <span className="text-primary font-bold">Live Tracking</span>
                       </div>
                     </div>
 
                   </div>
                 </Link>
               </motion.div>
-            )))}
+                ))
+            )}
           </motion.div>
         </div>
 

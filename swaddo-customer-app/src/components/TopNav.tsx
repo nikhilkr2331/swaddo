@@ -8,7 +8,7 @@ import LocationSelector from "./LocationSelector";
 export default function TopNav() {
   const { cartItemCount } = useCart();
   return (
-    <div className="hidden xl:flex fixed top-0 w-full h-20 bg-bg-alt border-b border-border-subtle shadow-sm z-50 px-8 items-center justify-between">
+    <div className="hidden xl:flex fixed top-0 w-full h-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] z-50 px-8 items-center justify-between">
       
       {/* Left Section: Logo & Location */}
       <div className="flex items-center gap-8">

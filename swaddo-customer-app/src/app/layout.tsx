@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import NotificationListener from "@/components/NotificationListener";
 import { CartProvider } from "@/context/CartContext";
 import { LocationProvider } from "@/context/LocationContext";
+import PageTransitionWrapper from "@/components/PageTransitionWrapper";
 import SplashScreen from "@/components/SplashScreen";
 import PWARegister from "@/components/PWARegister";
 import SWRProvider from "@/components/SWRProvider";
@@ -44,7 +45,9 @@ export default function RootLayout({
             {/* Main Content Area */}
             <main className="pb-20 xl:pb-0 xl:pt-20 min-h-screen relative">
               <SplashScreen />
-              {children}
+              <PageTransitionWrapper>
+                {children}
+              </PageTransitionWrapper>
             </main>
             {/* Notification Listener */}
             <NotificationListener />
