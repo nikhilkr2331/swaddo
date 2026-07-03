@@ -101,7 +101,7 @@ export default function Home() {
 
   // Setup SWR fetcher
   const fetcher = (url: string) => api.get(url).then(res => res.data);
-  const { data: stallsData, mutate: mutateStalls } = useSWR(
+  const { data: stallsData, mutate: mutateStalls, isLoading } = useSWR(
     userLocation.ready ? `/stalls?lat=${userLocation.lat}&lng=${userLocation.lng}&vegOnly=${isVegMode}` : null,
     fetcher,
     { revalidateOnFocus: false }
