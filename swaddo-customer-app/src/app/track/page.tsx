@@ -621,44 +621,44 @@ function OrderTrackingContent() {
       </div>
 
       {/* ETA Bottom Sheet UI */}
-      <div className="absolute bottom-0 left-0 w-full z-10">
+      <div className="absolute bottom-0 left-0 w-full z-10 pointer-events-auto">
         <motion.div 
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="bg-white/95 backdrop-blur-xl rounded-t-[32px] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] p-4 pb-safe"
+          className="bg-white/95 backdrop-blur-2xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(0,0,0,0.1)] p-5 pb-safe border-t border-white/50"
         >
-          <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4"></div>
+          <div className="w-12 h-1.5 bg-gray-300/80 rounded-full mx-auto mb-5"></div>
           
-          <div className="flex justify-between items-end mb-4">
+          <div className="flex justify-between items-end mb-5">
             <div>
-              <p className="text-text-muted font-bold text-xs mb-1">Estimated Arrival</p>
-              <h1 className="text-3xl font-heading font-black text-primary">{orderStatus.eta}</h1>
+              <p className="text-gray-500 font-bold text-[11px] mb-1 uppercase tracking-widest">Estimated Arrival</p>
+              <h1 className="text-[36px] font-heading font-black text-primary leading-none tracking-tighter">{orderStatus.eta}</h1>
             </div>
             <div className="text-right">
-              <p className="text-text-muted font-bold text-xs mb-1">Distance</p>
-              <p className="text-lg font-bold text-text-primary">{routeDistance}</p>
+              <p className="text-gray-500 font-bold text-[11px] mb-1 uppercase tracking-widest">Distance</p>
+              <p className="text-[18px] font-heading font-black text-gray-900 leading-none">{routeDistance}</p>
             </div>
           </div>
 
           {/* Delivery Partner Info */}
           {orderStatus.rider && (
-            <div className="bg-bg-alt rounded-2xl p-3 flex items-center gap-3 border border-border-subtle mb-4">
-              <div className="w-12 h-12 bg-gradient-to-tr from-primary to-accent rounded-full border-2 border-white shadow-sm flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-heading font-bold text-lg">{orderStatus.rider.name?.charAt(0) || 'R'}</span>
+            <div className="bg-gray-50/80 rounded-[20px] p-4 flex items-center gap-4 border border-gray-100 mb-5 shadow-sm">
+              <div className="w-[52px] h-[52px] bg-gradient-to-br from-primary to-orange-400 rounded-full border-2 border-white shadow-md flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-heading font-black text-[22px]">{orderStatus.rider.name?.charAt(0) || 'R'}</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-text-primary text-base">{orderStatus.rider.name || 'Ramu K.'}</h3>
-                <div className="flex items-center text-xs font-bold text-text-muted">
-                  <Star size={12} className="text-accent fill-accent mr-1" />
+                <h3 className="font-heading font-bold text-gray-900 text-[16px] leading-tight mb-1">{orderStatus.rider.name || 'Ramu K.'}</h3>
+                <div className="flex items-center text-[12px] font-bold text-gray-500">
+                  <Star size={12} className="text-yellow-500 fill-yellow-500 mr-1" />
                   4.8 • {orderStatus.rider.vehicle || 'Bike'}
                 </div>
               </div>
               <div className="flex gap-2">
-                <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-border-subtle text-primary">
+                <button className="w-11 h-11 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-200 text-primary active:scale-90 transition-transform">
                   <MessageSquare size={18} />
                 </button>
-                <a href={`tel:${orderStatus.rider.phone || ''}`} className="w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-md text-white">
+                <a href={`tel:${orderStatus.rider.phone || ''}`} className="w-11 h-11 bg-primary rounded-full flex items-center justify-center shadow-md text-white active:scale-90 transition-transform">
                   <Phone size={18} className="fill-white" />
                 </a>
               </div>

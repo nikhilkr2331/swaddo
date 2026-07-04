@@ -57,10 +57,10 @@ export default function DiningPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-bg-main pb-24 flex flex-col relative overflow-hidden app-scroll-container font-body">
       <div className="grayscale opacity-50 pointer-events-none select-none blur-[1px] flex-1">
         {/* Header Area */}
-      <div className="bg-white px-4 pt-6 pb-4 shadow-sm rounded-b-3xl xl:px-8 xl:pt-8 sticky top-0 z-[60]">
+      <div className="bg-bg-main/90 backdrop-blur-xl px-4 pt-6 pb-5 xl:px-8 xl:pt-8 sticky top-0 z-[60] border-b border-border-subtle/50">
         <div className="max-w-7xl mx-auto flex flex-col gap-5">
           {/* Top Row */}
           <div className="flex items-center justify-between">
@@ -79,7 +79,7 @@ export default function DiningPage() {
             <input 
               type="text" 
               placeholder="Search for restaurants to dine out..." 
-              className="w-full bg-gray-100 border border-transparent focus:border-primary/30 focus:bg-white rounded-2xl py-3.5 pl-11 pr-4 outline-none transition-all shadow-inner text-sm font-medium"
+              className="w-full bg-white border border-transparent focus:border-primary/30 focus:ring-4 focus:ring-primary/10 rounded-[16px] py-3.5 pl-12 pr-4 outline-none transition-all shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[14px] font-medium"
             />
           </div>
         </div>
@@ -87,15 +87,15 @@ export default function DiningPage() {
 
       <div className="px-4 xl:px-8 max-w-7xl mx-auto mt-6">
         {/* Promotional Banner */}
-        <div className="w-full relative overflow-hidden rounded-[24px] shadow-sm mb-6 h-[200px] sm:h-[240px] bg-gray-900">
+        <div className="w-full relative overflow-hidden rounded-[32px] shadow-native border border-transparent mb-6 h-[200px] sm:h-[240px] bg-gray-900">
           <Image src="/categories/north_indian.jpg" alt="Dining Offer" fill className="object-cover opacity-70 mix-blend-overlay" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
           
           <div className="absolute inset-0 p-6 flex flex-col justify-center w-3/4 sm:w-2/3">
-            <div className="w-max bg-white/20 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 border border-white/30 shadow-sm flex items-center gap-1.5">
+            <div className="w-max bg-white/20 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-[8px] mb-2 border border-white/30 shadow-sm flex items-center gap-1.5">
               <span>SPECIAL LAUNCH OFFER</span>
             </div>
-            <h3 className="font-heading font-extrabold text-3xl sm:text-4xl mb-1 text-white uppercase tracking-tight drop-shadow-md">
+            <h3 className="font-heading font-black text-3xl sm:text-4xl mb-1 text-white uppercase tracking-tight drop-shadow-md">
               Flat 10% OFF
             </h3>
             <p className="font-medium text-white/90 text-sm sm:text-base drop-shadow-sm mb-3">
@@ -120,38 +120,38 @@ export default function DiningPage() {
 
         {/* Restaurants List */}
         <div>
-          <div className="sticky top-[148px] sm:top-[150px] z-40 bg-gray-50 pt-3 pb-3 -mx-4 px-4 xl:-mx-8 xl:px-8 mb-4 border-b border-gray-200">
-            <h2 className="text-xl font-heading font-bold text-text-primary">Trending Dining Spots</h2>
+          <div className="sticky top-[148px] sm:top-[150px] z-40 bg-bg-main/90 backdrop-blur-md pt-4 pb-3 -mx-4 px-4 xl:-mx-8 xl:px-8 mb-4 border-b border-border-subtle/50">
+            <h2 className="text-[18px] font-heading font-black text-text-primary uppercase tracking-tight">Trending Dining Spots</h2>
           </div>
 
           <div className="flex flex-col gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
             {diningStalls.map((stall) => (
-              <div key={stall.id} className="bg-white rounded-[20px] p-3 flex gap-4 shadow-sm border border-gray-100 relative overflow-hidden transition-all hover:shadow-md">
-                <div className="relative w-28 h-32 rounded-xl overflow-hidden shrink-0">
+              <div key={stall.id} className="bg-white rounded-[24px] p-4 flex gap-4 shadow-native border border-transparent relative overflow-hidden transition-all hover:scale-[1.02]">
+                <div className="relative w-[110px] h-[130px] rounded-[16px] overflow-hidden shrink-0">
                   <Image src={stall.image} alt={stall.name} fill className="object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent h-1/2"></div>
-                  <div className="absolute top-0 left-0 bg-white/20 backdrop-blur-md border-b border-r border-white/30 text-white text-[10px] font-black px-2 py-1 rounded-br-xl shadow-sm">
+                  <div className="absolute top-0 left-0 bg-white/20 backdrop-blur-md border-b border-r border-white/30 text-white text-[10px] font-black px-2 py-1 rounded-br-[12px] shadow-sm uppercase tracking-wide">
                     {stall.offer}
                   </div>
                 </div>
                 <div className="flex flex-col flex-1 py-1">
                   <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-heading font-extrabold text-[17px] text-text-primary leading-tight line-clamp-1">{stall.name}</h3>
-                    <div className="bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 shrink-0 ml-2">
+                    <h3 className="font-heading font-black text-[17px] text-text-primary leading-tight line-clamp-1">{stall.name}</h3>
+                    <div className="bg-green-700 text-white text-[11px] font-bold px-1.5 py-0.5 rounded-[6px] flex items-center gap-0.5 shrink-0 ml-2 shadow-sm">
                       {stall.rating} <Star size={10} className="fill-white" />
                     </div>
                   </div>
-                  <span className="text-xs text-text-muted mb-1 font-medium line-clamp-1">{stall.tags.join(" • ")}</span>
-                  <span className="text-[10px] font-bold text-green-600 mb-2 bg-green-50 px-1.5 py-0.5 rounded-md w-max border border-green-100">
+                  <span className="text-[12px] text-text-muted mb-1.5 font-bold line-clamp-1">{stall.tags.join(" • ")}</span>
+                  <span className="text-[10px] font-black text-green-700 mb-2.5 bg-green-50 px-2 py-1 rounded-[8px] w-max border border-green-100 uppercase tracking-widest">
                     Book without waiting
                   </span>
-                  <span className="text-xs text-text-muted mb-auto flex items-center gap-1 font-medium">
-                    <MapPin size={12} className="text-primary" /> {stall.distance} • {stall.costForTwo} for two
+                  <span className="text-[12px] text-gray-500 mb-auto flex items-center gap-1 font-bold">
+                    <MapPin size={14} className="text-primary" /> {stall.distance} • {stall.costForTwo} for two
                   </span>
                   
                   <button 
                     onClick={() => handleBookTable(stall)}
-                    className="mt-3 w-full bg-primary/10 text-primary font-bold text-sm py-2.5 rounded-xl hover:bg-primary hover:text-white transition-colors border border-primary/20 hover:border-primary active:scale-95"
+                    className="mt-3.5 w-full bg-primary/10 text-primary font-black text-[14px] py-2.5 rounded-[12px] hover:bg-primary hover:text-white transition-colors active:scale-95 uppercase tracking-wide border border-primary/20"
                   >
                     Book Table
                   </button>
@@ -185,11 +185,11 @@ export default function DiningPage() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="bg-white w-full sm:w-[450px] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="bg-bg-main w-full sm:w-[450px] rounded-t-[32px] sm:rounded-[32px] overflow-hidden flex flex-col max-h-[90vh] shadow-[0_-12px_40px_rgba(0,0,0,0.1)]"
             >
-              <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-heading font-extrabold text-lg text-text-primary line-clamp-1 pr-4">Book Table at {selectedStall.name}</h3>
-                <button onClick={() => setSelectedStall(null)} className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-100 text-gray-500 shrink-0">
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white/95 backdrop-blur-md sticky top-0 z-10">
+                <h3 className="font-heading font-black text-[18px] text-text-primary line-clamp-1 pr-4 uppercase tracking-tight">Book Table at {selectedStall.name}</h3>
+                <button onClick={() => setSelectedStall(null)} className="p-2 bg-gray-50 rounded-full shadow-sm hover:bg-gray-100 text-gray-500 shrink-0 active:scale-90 transition-transform">
                   <X size={18} />
                 </button>
               </div>

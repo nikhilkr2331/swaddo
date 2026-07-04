@@ -9,9 +9,9 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
   return (
     <motion.div
       key={pathname}
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
       className="w-full h-full"
     >
       {children}

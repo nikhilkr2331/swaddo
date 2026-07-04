@@ -115,13 +115,107 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     await client.query('COMMIT');
 
     const token = jwt.sign({ id: user.id, role }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: user.id, phone, role } });
+    res.json({ token, user: { id: user.id, phone, role, name: user.name } });
   } catch (error: any) {
     if (client) await client.query('ROLLBACK');
     logger.error('Login error', error);
-    res.status(500).json({ message: 'Server error: ' + (error.message || 'unknown error') });
+    res.status(500).json({ message: 'Server error: ' + (error.message || 'unknown error'), stack: error.stack, fullError: String(error) });
   } finally {
     if (client) client.release();
+  }
+});
+
+import { authenticate, AuthRequest } from '../middleware/auth';
+
+router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const client = await pool.connect();
+    const result = await client.query('SELECT id, name, phone, role, created_at FROM users WHERE id = $1', [userId]);
+    client.release();
+    
+    if (result.rows.length === 0) return res.status(404).json({ message: 'User not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    logger.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.put('/profile', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { name, phone } = req.body;
+    
+    const client = await pool.connect();
+    
+    if (phone) {
+      // Check if phone already in use by another user
+      const phoneCheck = await client.query('SELECT id FROM users WHERE phone = $1 AND id != $2', [phone, userId]);
+      if (phoneCheck.rows.length > 0) {
+        client.release();
+        return res.status(400).json({ message: 'Phone number already in use' });
+      }
+    }
+    
+    const result = await client.query(
+      'UPDATE users SET name = COALESCE($1, name), phone = COALESCE($2, phone) WHERE id = $3 RETURNING id, name, phone, role',
+      [name, phone, userId]
+    );
+    client.release();
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    logger.error('Error updating user profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.get('/addresses', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const client = await pool.connect();
+    const result = await client.query('SELECT * FROM user_addresses WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
+    client.release();
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error fetching addresses:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.post('/addresses', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { tag, name, phone, house_number, full_address, lat, lng } = req.body;
+    
+    const client = await pool.connect();
+    const result = await client.query(
+      'INSERT INTO user_addresses (user_id, tag, name, phone, house_number, full_address, lat, lng) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [userId, tag, name, phone, house_number, full_address, lat, lng]
+    );
+    client.release();
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    logger.error('Error saving address:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.delete('/addresses/:id', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const addressId = req.params.id;
+    
+    const client = await pool.connect();
+    await client.query('DELETE FROM user_addresses WHERE id = $1 AND user_id = $2', [addressId, userId]);
+    client.release();
+    
+    res.json({ message: 'Address deleted successfully' });
+  } catch (error) {
+    logger.error('Error deleting address:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

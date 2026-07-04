@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Edit2, LogOut, ChevronRight, ShoppingBag, MapPin, CreditCard, HeadphonesIcon, Settings, Info, Heart, Wallet, UtensilsCrossed, ShieldCheck, Star, X } from "lucide-react";
+import { Edit2, LogOut, ChevronRight, ShoppingBag, MapPin, CreditCard, HeadphonesIcon, Settings, Info, Heart, Wallet, UtensilsCrossed, ShieldCheck, Star, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +18,10 @@ export default function Profile() {
   const [showFavoritesModal, setShowFavoritesModal] = useState(false);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [vegRestaurantsOnly, setVegRestaurantsOnly] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -55,64 +59,88 @@ export default function Profile() {
     localStorage.removeItem('swaddo_customer_phone');
     router.push('/login');
   };
+
+  const handleUpdateProfile = async () => {
+    if (!editName.trim()) return alert("Name is required");
+    setIsUpdating(true);
+    try {
+      const res = await api.put('/auth/profile', { name: editName, phone: editPhone });
+      setProfileData(res.data);
+      if (res.data.phone) localStorage.setItem('swaddo_customer_phone', res.data.phone);
+      setShowEditModal(false);
+    } catch (error: any) {
+      console.error("Failed to update profile", error);
+      alert(error.response?.data?.message || "Failed to update profile");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const openEditModal = () => {
+    setEditName(name !== "Guest User" ? name : "");
+    setEditPhone(phone.replace('+91 ', '').replace('+91', ''));
+    setShowEditModal(true);
+  };
   
   return (
-    <div className="min-h-screen bg-[#f4f4f5] pb-24 font-body">
+    <div className="app-scroll-container bg-bg-main pb-24 font-body">
       
       {/* Header / Profile Info */}
-      <div className="bg-white px-6 pt-10 pb-6 rounded-b-[24px] shadow-sm relative mb-4">
+      <div className="bg-white px-4 sm:px-6 pt-12 pb-6 rounded-b-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] relative mb-5">
         <div className="flex justify-between items-center max-w-5xl mx-auto">
-          <div className="flex flex-col">
-            <h1 className="text-[28px] font-heading font-black text-gray-900 tracking-tight leading-tight">{name}</h1>
-            <p className="text-gray-500 mt-1 font-medium text-sm flex items-center gap-2">
-              {phone.startsWith('+') ? phone : `+91 ${phone}`} 
-              <span className="w-1 h-1 bg-gray-300 rounded-full"></span> 
-              <span className="text-primary font-bold cursor-pointer flex items-center gap-1">Edit <Edit2 size={12}/></span>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-[28px] sm:text-[32px] font-heading font-black text-[#1c1c1c] tracking-tight leading-none">{name}</h1>
+            <p className="text-[#696969] mt-0.5 font-medium text-[13px] flex items-center gap-1.5">
+              <span>{phone.startsWith('+') ? phone : `+91 ${phone}`}</span>
+              <span className="text-gray-300 font-bold">•</span> 
+              <button onClick={openEditModal} className="text-[#e23744] font-bold cursor-pointer flex items-center gap-1 active:scale-95 transition-transform hover:opacity-80">
+                Edit <Edit2 size={11} className="stroke-[3px]" />
+              </button>
             </p>
           </div>
-          <div className="w-[72px] h-[72px] rounded-full bg-gray-100 flex items-center justify-center text-2xl font-heading font-black text-gray-700 shadow-inner border border-gray-200 uppercase">
-            {name.substring(0, 2)}
+          <div className="w-[72px] h-[72px] sm:w-[80px] sm:h-[80px] rounded-full bg-[#f8f9fa] flex items-center justify-center text-[24px] sm:text-[28px] font-heading font-black text-[#1c1c1c] shadow-sm border border-gray-100 uppercase overflow-hidden shrink-0 ml-4">
+            {name.split(' ').map(n => n[0]).join('').substring(0, 2)}
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 xl:px-0 flex flex-col gap-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 xl:px-0 flex flex-col gap-5">
         
         {/* Quick Access Horizontal Cards */}
-        <div className="flex gap-4 mb-1">
-          <Link href="/orders" className="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform">
-            <div className="bg-orange-50 p-3 rounded-full text-primary">
-              <ShoppingBag size={22} />
+        <div className="flex gap-4">
+          <Link href="/orders" className="flex-1 bg-white p-4 rounded-[24px] shadow-native border border-transparent flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform hover:shadow-native-lg">
+            <div className="bg-orange-50/80 p-3.5 rounded-[16px] text-primary">
+              <ShoppingBag size={24} />
             </div>
-            <span className="font-bold text-sm text-gray-800">Orders</span>
+            <span className="font-bold text-[13px] text-gray-800 tracking-tight">Orders</span>
           </Link>
-          <Link href="/addresses" className="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform">
-            <div className="bg-green-50 p-3 rounded-full text-green-600">
-              <MapPin size={22} />
+          <Link href="/addresses" className="flex-1 bg-white p-4 rounded-[24px] shadow-native border border-transparent flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform hover:shadow-native-lg">
+            <div className="bg-blue-50/80 p-3.5 rounded-[16px] text-blue-600">
+              <MapPin size={24} />
             </div>
-            <span className="font-bold text-sm text-gray-800">Addresses</span>
+            <span className="font-bold text-[13px] text-gray-800 tracking-tight">Addresses</span>
           </Link>
-          <Link href="/payments" className="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform">
-            <div className="bg-purple-50 p-3 rounded-full text-purple-600">
-              <Wallet size={22} />
+          <Link href="/payments" className="flex-1 bg-white p-4 rounded-[24px] shadow-native border border-transparent flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform hover:shadow-native-lg">
+            <div className="bg-purple-50/80 p-3.5 rounded-[16px] text-purple-600">
+              <Wallet size={24} />
             </div>
-            <span className="font-bold text-sm text-gray-800">Wallet</span>
+            <span className="font-bold text-[13px] text-gray-800 tracking-tight">Wallet</span>
           </Link>
         </div>
 
         {/* Menu Groups */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5 mt-2">
           
           {/* Group 1: Food & Dining */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+          <div className="bg-white rounded-[24px] shadow-native overflow-hidden border border-transparent">
             <Link href="/orders" className="flex items-center justify-between p-4 sm:px-5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600">
+                <div className="w-[42px] h-[42px] rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                   <ShoppingBag size={20} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-gray-800 text-sm">Your Orders</span>
-                  <span className="text-xs text-gray-500 font-medium">Reorder, track, or get help</span>
+                  <span className="font-heading font-bold text-gray-900 text-[15px]">Your Orders</span>
+                  <span className="text-[12px] text-gray-500 font-medium mt-0.5">Reorder, track, or get help</span>
                 </div>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
@@ -120,12 +148,12 @@ export default function Profile() {
             
             <button onClick={() => setShowFavoritesModal(true)} className="w-full flex items-center justify-between p-4 sm:px-5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50 text-left">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500">
-                  <Heart size={20} className="fill-red-500" />
+                <div className="w-[42px] h-[42px] rounded-full bg-red-50 flex items-center justify-center text-red-500">
+                  <Heart size={20} className="fill-red-500 text-red-500" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-gray-800 text-sm">Your Favorites</span>
-                  <span className="text-xs text-gray-500 font-medium">Saved restaurants and stalls</span>
+                  <span className="font-heading font-bold text-gray-900 text-[15px]">Your Favorites</span>
+                  <span className="text-[12px] text-gray-500 font-medium mt-0.5">Saved restaurants and stalls</span>
                 </div>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
@@ -133,12 +161,12 @@ export default function Profile() {
             
             <Link href="/dining" className="flex items-center justify-between p-4 sm:px-5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600">
+                <div className="w-[42px] h-[42px] rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                   <UtensilsCrossed size={20} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-gray-800 text-sm">Dining Bookings</span>
-                  <span className="text-xs text-gray-500 font-medium">View your table reservations</span>
+                  <span className="font-heading font-bold text-gray-900 text-[15px]">Dining Bookings</span>
+                  <span className="text-[12px] text-gray-500 font-medium mt-0.5">View your table reservations</span>
                 </div>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
@@ -146,15 +174,15 @@ export default function Profile() {
           </div>
 
           {/* Group 2: Account Details */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+          <div className="bg-white rounded-[24px] shadow-native overflow-hidden border border-transparent">
             <Link href="/addresses" className="flex items-center justify-between p-4 sm:px-5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600">
+                <div className="w-[42px] h-[42px] rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                   <MapPin size={20} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-gray-800 text-sm">Manage Addresses</span>
-                  <span className="text-xs text-gray-500 font-medium">Add or edit delivery locations</span>
+                  <span className="font-heading font-bold text-gray-900 text-[15px]">Manage Addresses</span>
+                  <span className="text-[12px] text-gray-500 font-medium mt-0.5">Add or edit delivery locations</span>
                 </div>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
@@ -162,12 +190,12 @@ export default function Profile() {
 
             <Link href="/payments" className="flex items-center justify-between p-4 sm:px-5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600">
+                <div className="w-[42px] h-[42px] rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                   <CreditCard size={20} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-gray-800 text-sm">Payments & Wallets</span>
-                  <span className="text-xs text-gray-500 font-medium">Manage cards and refunds</span>
+                  <span className="font-heading font-bold text-gray-900 text-[15px]">Payments & Wallets</span>
+                  <span className="text-[12px] text-gray-500 font-medium mt-0.5">Manage cards and refunds</span>
                 </div>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
@@ -175,51 +203,51 @@ export default function Profile() {
           </div>
 
           {/* Group 3: Help & Settings */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 mb-2">
+          <div className="bg-white rounded-[24px] shadow-native overflow-hidden border border-transparent mb-4">
             <Link href="/support" className="flex items-center justify-between p-4 sm:px-5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600">
+                <div className="w-[42px] h-[42px] rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                   <HeadphonesIcon size={20} />
                 </div>
-                <span className="font-bold text-gray-800 text-sm">Help & Support</span>
+                <span className="font-heading font-bold text-gray-900 text-[15px]">Help & Support</span>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
             </Link>
 
             <div className="flex items-center justify-between p-4 sm:px-5 hover:bg-gray-50 transition-colors border-b border-gray-50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+                <div className="w-[42px] h-[42px] rounded-full bg-green-50 flex items-center justify-center text-green-600">
                   <ShieldCheck size={20} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-gray-800 text-sm">Pure Veg Restaurants</span>
-                  <span className="text-xs text-gray-500 font-medium">Show only pure veg places</span>
+                  <span className="font-heading font-bold text-gray-900 text-[15px]">Pure Veg Restaurants</span>
+                  <span className="text-[12px] text-gray-500 font-medium mt-0.5">Show only pure veg places</span>
                 </div>
               </div>
               <div 
                 onClick={toggleVegRestaurants}
-                className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${vegRestaurantsOnly ? 'bg-green-600' : 'bg-gray-300'}`}
+                className={`w-12 h-7 rounded-full p-1 cursor-pointer transition-colors ${vegRestaurantsOnly ? 'bg-green-600' : 'bg-gray-200'}`}
               >
-                <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${vegRestaurantsOnly ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${vegRestaurantsOnly ? 'translate-x-5' : 'translate-x-0'}`}></div>
               </div>
             </div>
 
             <Link href="/settings" className="flex items-center justify-between p-4 sm:px-5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600">
+                <div className="w-[42px] h-[42px] rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                   <Settings size={20} />
                 </div>
-                <span className="font-bold text-gray-800 text-sm">Settings</span>
+                <span className="font-heading font-bold text-gray-900 text-[15px]">Settings</span>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
             </Link>
 
             <Link href="/about" className="flex items-center justify-between p-4 sm:px-5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600">
+                <div className="w-[42px] h-[42px] rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
                   <Info size={20} />
                 </div>
-                <span className="font-bold text-gray-800 text-sm">About & Terms</span>
+                <span className="font-heading font-bold text-gray-900 text-[15px]">About & Terms</span>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
             </Link>
@@ -229,10 +257,10 @@ export default function Profile() {
               className="w-full flex items-center justify-between p-4 sm:px-5 hover:bg-red-50 active:bg-red-100 transition-colors text-left"
             >
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500">
+                <div className="w-[42px] h-[42px] rounded-full bg-red-50 flex items-center justify-center text-red-500">
                   <LogOut size={20} />
                 </div>
-                <span className="font-bold text-red-600 text-sm">Log Out</span>
+                <span className="font-heading font-bold text-red-600 text-[15px]">Log Out</span>
               </div>
             </button>
           </div>
@@ -351,6 +379,70 @@ export default function Profile() {
                   </div>
                 )}
               </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Profile Modal */}
+      <AnimatePresence>
+        {showEditModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowEditModal(false)}
+              className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl z-[101] flex flex-col p-6"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-heading font-black text-xl text-gray-900 tracking-tight">Edit Profile</h3>
+                <button onClick={() => setShowEditModal(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="flex flex-col gap-4 mb-6">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block tracking-wider">Your Name</label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] font-medium outline-none focus:border-primary focus:bg-white transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block tracking-wider">Phone Number</label>
+                  <div className="flex">
+                    <div className="bg-gray-100 border border-gray-200 border-r-0 rounded-l-xl px-4 py-3.5 text-[15px] font-bold text-gray-600 shrink-0">
+                      +91
+                    </div>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Enter mobile number"
+                      className="w-full border border-gray-200 bg-gray-50 rounded-r-xl px-4 py-3.5 text-[15px] font-medium outline-none focus:border-primary focus:bg-white transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={handleUpdateProfile}
+                disabled={isUpdating}
+                className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-4 rounded-xl shadow-[0_4px_14px_rgba(226,64,28,0.4)] transition-all active:scale-95 flex justify-center items-center gap-2"
+              >
+                {isUpdating ? <Loader2 size={20} className="animate-spin" /> : "Save Changes"}
+              </button>
             </motion.div>
           </>
         )}

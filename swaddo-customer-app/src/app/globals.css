@@ -3,7 +3,12 @@
 @tailwind utilities;
 
 html, body {
-  scroll-behavior: smooth;
+  /* Native App Shell Behavior */
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  overscroll-behavior-y: none; /* Prevents rubber-banding on iOS */
+  background-color: #F8F9FA;
 }
 
 body {
@@ -13,6 +18,18 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
+  
+  /* Safe area insets for notched devices (like iOS) */
+  --safe-area-bottom: env(safe-area-inset-bottom, 20px);
+  --safe-area-top: env(safe-area-inset-top, 0px);
+}
+
+/* Main scrollable area */
+.app-scroll-container {
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 /* Allow text selection only inside inputs */
@@ -24,9 +41,11 @@ h1, h2, h3, h4, h5, h6 {
   @apply font-heading;
 }
 
-/* Optional: hide scrollbars for cleaner mobile UI */
+/* Hide scrollbars completely for native look */
 ::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
 }
 * {
   -ms-overflow-style: none;

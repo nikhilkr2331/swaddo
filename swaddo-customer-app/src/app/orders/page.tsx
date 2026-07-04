@@ -157,15 +157,15 @@ export default function Orders() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-32 xl:pb-12 font-body">
+    <div className="app-scroll-container bg-bg-main pb-32 xl:pb-12 font-body">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-20 bg-white shadow-sm py-4 px-4 sm:px-6 flex items-center gap-4">
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 py-4 px-4 sm:px-6 flex items-center gap-4">
         <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 transition-colors">
           <ArrowLeft size={20} className="text-gray-700" />
         </button>
         <div className="flex flex-col">
-           <h1 className="text-lg font-heading font-black text-gray-900 leading-tight">Past Orders</h1>
-           <p className="text-xs text-gray-500 font-medium">Food delivery & dining</p>
+           <h1 className="text-[20px] font-heading font-black text-gray-900 leading-tight tracking-tight uppercase">Past Orders</h1>
+           <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">Food delivery & dining</p>
         </div>
       </div>
 
@@ -185,60 +185,60 @@ export default function Orders() {
             <p className="text-gray-500 text-sm">Looks like you haven't ordered anything yet.</p>
           </div>
         ) : orders.map(order => (
-          <div key={order.id} className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
+          <div key={order.id} className="bg-white rounded-[24px] shadow-native border border-transparent overflow-hidden mb-5">
             
             {/* Top Info */}
-            <div className="p-4 flex gap-4">
-              <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-100 shadow-sm relative">
+            <div className="p-4 sm:p-5 flex gap-4">
+              <div className="w-[60px] h-[60px] rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100 shadow-sm relative">
                 <Image src={getRestaurantImage(order.stall)} alt={order.stall} fill className="object-cover" />
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
                 <div className="flex justify-between items-start gap-2">
-                  <div>
-                    <h3 className="font-heading font-black text-gray-900 text-lg leading-tight truncate">{order.stall}</h3>
-                    <p className="text-xs text-gray-500 font-medium mt-1 truncate">{order.location}</p>
+                  <div className="flex flex-col">
+                    <h3 className="font-heading font-bold text-gray-900 text-[16px] leading-tight truncate">{order.stall}</h3>
+                    <p className="text-[12px] text-gray-500 font-medium mt-1 truncate">{order.location}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="font-bold text-gray-900">₹{order.total}</span>
+                    <span className="font-heading font-black text-[15px] text-gray-900">₹{order.total}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mx-4 border-t border-dashed border-gray-200"></div>
+            <div className="mx-5 border-t border-dashed border-gray-200"></div>
 
             {/* Items List */}
-            <div className="px-4 py-3 bg-gray-50/50">
+            <div className="px-5 py-3.5 bg-gray-50/30">
                <div className="space-y-1.5">
                   {order.items.map((item: any, idx: number) => (
-                     <div key={idx} className="flex gap-2 text-sm">
-                        <span className="text-gray-500 font-medium shrink-0">{item.qty} x</span>
-                        <span className="text-gray-800 font-medium">{item.name}</span>
+                     <div key={idx} className="flex gap-2 text-[13px]">
+                        <span className="text-gray-400 font-bold shrink-0">{item.qty} x</span>
+                        <span className="text-gray-700 font-medium">{item.name}</span>
                      </div>
                   ))}
                </div>
-               <div className="mt-3 text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+               <div className="mt-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                   {order.date}
                </div>
             </div>
 
             {/* Status & Actions */}
-            <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+            <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {order.status === "delivered" ? (
-                  <div className="flex items-center gap-1.5 text-green-700 bg-green-50 px-2.5 py-1 rounded-md">
+                  <div className="flex items-center gap-1.5 text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-100">
                     <CheckCircle2 size={14} />
-                    <span className="text-xs font-bold uppercase tracking-wider">Delivered</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Delivered</span>
                   </div>
                 ) : order.status === "cancelled" ? (
-                  <div className="flex items-center gap-1.5 text-red-600 bg-red-50 px-2.5 py-1 rounded-md">
+                  <div className="flex items-center gap-1.5 text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100">
                     <XCircle size={14} />
-                    <span className="text-xs font-bold uppercase tracking-wider">Cancelled</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Cancelled</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 text-orange-600 bg-orange-50 px-2.5 py-1 rounded-md">
+                  <div className="flex items-center gap-1.5 text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100">
                     <Clock size={14} />
-                    <span className="text-xs font-bold uppercase tracking-wider">{order.status.replace(/_/g, ' ')}</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider">{order.status.replace(/_/g, ' ')}</span>
                   </div>
                 )}
               </div>
@@ -248,21 +248,21 @@ export default function Orders() {
                   <>
                     <button 
                       onClick={() => openRatingModal(order)} 
-                      className={`flex items-center gap-1.5 font-bold py-2 px-4 rounded-xl transition-colors text-xs ${isFullyRated(order.ratingData) ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                      className={`flex items-center gap-1.5 font-bold py-2 px-4 rounded-[12px] transition-colors text-[12px] active:scale-95 ${isFullyRated(order.ratingData) ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
                     >
                       {isFullyRated(order.ratingData) ? <CheckCircle2 size={14} /> : <ThumbsUp size={14} />} 
                       {isFullyRated(order.ratingData) ? 'Rated' : 'Rate'}
                     </button>
-                    <button onClick={() => handleReorder(order)} className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary hover:text-white text-primary font-bold py-2 px-4 rounded-xl transition-colors text-xs">
+                    <button onClick={() => handleReorder(order)} className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary hover:text-white text-primary font-bold py-2 px-4 rounded-[12px] transition-colors text-[12px] active:scale-95">
                       <RefreshCw size={14} /> Reorder
                     </button>
                   </>
                 ) : order.status === "cancelled" ? (
-                  <button onClick={() => handleReorder(order)} className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary hover:text-white text-primary font-bold py-2 px-4 rounded-xl transition-colors text-xs">
+                  <button onClick={() => handleReorder(order)} className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary hover:text-white text-primary font-bold py-2 px-4 rounded-[12px] transition-colors text-[12px] active:scale-95">
                     <RefreshCw size={14} /> Reorder
                   </button>
                 ) : (
-                  <Link href={`/track?id=${order.id}`} className="flex items-center gap-1.5 bg-primary text-white hover:bg-primary-hover font-bold py-2 px-4 rounded-xl transition-colors text-xs">
+                  <Link href={`/track?id=${order.id}`} className="flex items-center gap-1.5 bg-primary text-white hover:bg-primary-hover font-bold py-2 px-4 rounded-[12px] transition-colors text-[12px] active:scale-95 shadow-sm shadow-primary/30">
                     <Route size={14} /> Track
                   </Link>
                 )}

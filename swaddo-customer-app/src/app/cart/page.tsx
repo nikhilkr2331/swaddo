@@ -330,50 +330,50 @@ export default function Cart() {
     return () => clearTimeout(timerId);
   }, [mapSearchQuery]);
 
+  const fetchAddresses = async () => {
+    try {
+      const res = await api.get('/auth/addresses');
+      const mapped = res.data.map((a: any) => ({
+         id: a.id.toString(),
+         tag: a.tag,
+         customerName: a.name,
+         customerPhone: a.phone,
+         houseNumber: a.house_number,
+         fullAddress: a.full_address,
+         latitude: parseFloat(a.lat),
+         longitude: parseFloat(a.lng)
+      }));
+      setSavedAddresses(mapped);
+      if (mapped.length === 1) {
+        setSelectedAddressId(mapped[0].id);
+      }
+    } catch(e) {
+      console.error("Failed to fetch addresses:", e);
+    }
+  };
+
   const handleSaveAddress = async () => {
     const finalAddress = mapSearchQuery || "Location Selected on Map";
-
-    let updatedAddresses = [];
-    if (editAddressId) {
-       updatedAddresses = savedAddresses.map(addr => {
-          if (addr.id === editAddressId) {
-             return {
-                ...addr,
-                tag: mapAddressTag,
-                customerName: customerName,
-                customerPhone: customerPhone,
-                houseNumber: houseNumber || "",
-                fullAddress: finalAddress,
-                latitude: mapLat,
-                longitude: mapLng
-             };
-          }
-          return addr;
-       });
-    } else {
-      const newAddress: SavedAddress = {
-        id: Date.now().toString(),
-        tag: mapAddressTag,
-        customerName: customerName,
-        customerPhone: customerPhone,
-        houseNumber: houseNumber || "",
-        street: "",
-        fullAddress: finalAddress,
-        latitude: mapLat,
-        longitude: mapLng
-      };
-      updatedAddresses = [...savedAddresses, newAddress];
-    }
-    
-    setSavedAddresses(updatedAddresses);
-    
-    // Auto-select ONLY if it's the very first address being added
-    if (updatedAddresses.length === 1 && !editAddressId) {
-       setSelectedAddressId(updatedAddresses[0].id);
-    }
-    
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('swaddo_saved_addresses', JSON.stringify(updatedAddresses));
+    try {
+      if (editAddressId) {
+        await api.delete(`/auth/addresses/${editAddressId}`);
+      }
+      
+      const res = await api.post('/auth/addresses', {
+         tag: mapAddressTag,
+         name: customerName,
+         phone: customerPhone,
+         house_number: houseNumber || "",
+         full_address: finalAddress,
+         lat: mapLat,
+         lng: mapLng
+      });
+      
+      await fetchAddresses();
+      if (!editAddressId) setSelectedAddressId(res.data.id.toString());
+      
+    } catch(err) {
+      console.error("Failed to save address", err);
     }
     
     setIsMapOpen(false);
@@ -396,30 +396,21 @@ export default function Cart() {
      setIsMapOpen(true);
   };
 
-  const handleDeleteAddress = (e: React.MouseEvent, id: string) => {
+  const handleDeleteAddress = async (e: React.MouseEvent, id: string) => {
      e.stopPropagation();
      if (!confirm("Delete this address?")) return;
-     const updated = savedAddresses.filter(a => a.id !== id);
-     setSavedAddresses(updated);
-     if (selectedAddressId === id) setSelectedAddressId(null);
-     if (typeof window !== 'undefined') {
-        localStorage.setItem('swaddo_saved_addresses', JSON.stringify(updated));
+     try {
+       await api.delete(`/auth/addresses/${id}`);
+       const updated = savedAddresses.filter(a => a.id !== id);
+       setSavedAddresses(updated);
+       if (selectedAddressId === id) setSelectedAddressId(null);
+     } catch(error) {
+       console.error("Failed to delete address", error);
      }
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedAddresses = localStorage.getItem('swaddo_saved_addresses');
-      if (storedAddresses) {
-        try {
-          const parsed = JSON.parse(storedAddresses);
-          setSavedAddresses(parsed);
-          if (parsed.length === 1) {
-            setSelectedAddressId(parsed[0].id);
-          }
-        } catch(e) {}
-      }
-    }
+    fetchAddresses();
   }, []);
 
   const itemTotal = cartTotal + (foodMarkup * cartItemCount);
@@ -555,39 +546,39 @@ export default function Cart() {
 
   return (
     <>
-      <div className="min-h-screen bg-bg-main pb-40">
+      <div className="app-scroll-container bg-bg-main pb-40 font-body">
         <Script src="https://checkout.razorpay.com/v1/checkout.js" />
         
         {/* Header */}
-        <div className="bg-white px-4 py-4 flex items-center gap-4 sticky top-0 z-10 shadow-sm border-b border-border-subtle">
-          <button onClick={() => router.back()} className="p-2 -ml-2 rounded-full hover:bg-bg-alt text-text-primary transition-colors">
-            <ArrowLeft size={24} />
+        <div className="bg-bg-main/90 backdrop-blur-md px-4 py-4 flex items-center gap-3 sticky top-0 z-20 border-b border-border-subtle/50">
+          <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 transition-colors shadow-sm">
+            <ArrowLeft size={20} className="text-text-primary" />
           </button>
           <div className="flex flex-col">
-            <h1 className="font-heading font-bold text-xl leading-tight">{cart.stallName}</h1>
+            <h1 className="font-heading font-black text-[18px] text-text-primary uppercase tracking-tight leading-tight">{cart.stallName}</h1>
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto p-4 space-y-4">
+        <div className="max-w-2xl mx-auto p-4 sm:p-6 space-y-5">
           
           {/* Saved Addresses Section */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-border-subtle shadow-sm">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="font-bold text-text-primary">Deliver to</h2>
-              <button onClick={() => setIsMapOpen(true)} className="text-primary text-sm font-bold flex items-center gap-1">
-                <MapPin size={16} /> Add New Address
+          <div className="bg-white rounded-[24px] p-5 border border-transparent shadow-native">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-heading font-black text-[16px] text-text-primary uppercase tracking-tight">Deliver to</h2>
+              <button onClick={() => setIsMapOpen(true)} className="text-primary text-[13px] font-bold flex items-center gap-1 active:scale-95 transition-transform">
+                <MapPin size={14} /> Add New
               </button>
             </div>
             
             <div className="space-y-3">
               {savedAddresses.length === 0 ? (
-                <div className="text-center py-4 border border-dashed border-border-subtle rounded-xl bg-bg-alt">
-                  <p className="text-text-muted text-sm mb-2">No saved addresses yet</p>
-                  <button onClick={() => { setEditAddressId(null); setIsMapOpen(true); }} className="text-primary font-bold text-sm">Add Address</button>
+                <div className="text-center py-5 border-2 border-dashed border-border-subtle rounded-[16px] bg-gray-50">
+                  <p className="text-text-muted text-[13px] mb-2 font-medium">No saved addresses yet</p>
+                  <button onClick={() => { setEditAddressId(null); setIsMapOpen(true); }} className="text-primary font-bold text-[13px] bg-white px-4 py-2 rounded-[12px] shadow-sm border border-gray-100">Add Address</button>
                 </div>
               ) : (
                 savedAddresses.map(addr => (
-                  <label key={addr.id} className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-primary bg-primary/5' : 'border-border-subtle'}`}>
+                  <label key={addr.id} className={`flex items-start gap-4 p-4 border rounded-[16px] cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-primary bg-primary/5 shadow-sm' : 'border-transparent bg-gray-50 hover:bg-gray-100'}`}>
                     <input 
                       type="radio" 
                       name="deliveryAddress" 
@@ -597,14 +588,14 @@ export default function Cart() {
                     />
                     <div className="flex flex-col flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-sm text-text-primary flex items-center gap-1.5">{addr.tag === 'Home' ? <Home size={14} /> : addr.tag === 'Work' ? <Briefcase size={14} /> : <MapPin size={14} />} {addr.tag}</span>
-                        {addr.customerName && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">{addr.customerName}</span>}
+                        <span className="font-bold text-[14px] text-text-primary flex items-center gap-1.5">{addr.tag === 'Home' ? <Home size={14} /> : addr.tag === 'Work' ? <Briefcase size={14} /> : <MapPin size={14} />} {addr.tag}</span>
+                        {addr.customerName && <span className="text-[10px] bg-white border border-gray-200 text-gray-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">{addr.customerName}</span>}
                       </div>
-                      <p className="text-text-muted text-xs leading-relaxed mt-0.5 line-clamp-2 pr-2">
+                      <p className="text-text-muted text-[12px] leading-relaxed mt-0.5 line-clamp-2 pr-2 font-medium">
                         {addr.houseNumber ? `${addr.houseNumber}, ` : ""}{addr.fullAddress}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1 shrink-0">
                        <button onClick={(e) => handleEditAddress(e, addr)} className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                        </button>
@@ -619,26 +610,26 @@ export default function Cart() {
             
             {/* Delivery Instructions Section */}
             {savedAddresses.length > 0 && selectedAddressId && (
-              <div className="mt-5 pt-5 border-t border-border-subtle">
-                <h3 className="font-bold text-sm text-text-primary mb-3">Delivery Instructions</h3>
+              <div className="mt-5 pt-5 border-t border-dashed border-gray-200">
+                <h3 className="font-bold text-[13px] text-text-primary mb-3">Delivery Instructions</h3>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {['Leave at door', 'Don\'t ring bell', 'Avoid calling'].map(inst => (
                     <button 
                       key={inst}
                       onClick={() => setDeliveryInstructions(deliveryInstructions === inst ? "" : inst)}
-                      className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${deliveryInstructions === inst ? 'bg-primary/10 border-primary text-primary' : 'bg-bg-main border-border-subtle text-text-muted hover:bg-bg-alt'}`}
+                      className={`whitespace-nowrap px-3 py-1.5 rounded-[12px] text-[12px] font-bold border transition-all ${deliveryInstructions === inst ? 'bg-primary/10 border-primary text-primary' : 'bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100'}`}
                     >
                       {inst}
                     </button>
                   ))}
                 </div>
                 
-                <h3 className="font-bold text-sm text-text-primary mb-3 mt-4">Restaurant Instructions</h3>
+                <h3 className="font-bold text-[13px] text-text-primary mb-3 mt-4">Restaurant Instructions</h3>
                 <textarea
                   placeholder="Any cooking instructions (e.g. less spicy)?"
                   value={restaurantInstructions}
                   onChange={(e) => setRestaurantInstructions(e.target.value)}
-                  className="w-full bg-bg-main border border-border-subtle rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-colors resize-none"
+                  className="w-full bg-gray-50 border border-transparent rounded-[16px] px-4 py-3 text-[13px] focus:outline-none focus:border-primary focus:bg-white transition-colors resize-none"
                   rows={2}
                 />
               </div>
@@ -646,29 +637,29 @@ export default function Cart() {
           </div>
 
           {/* Cart Items */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-border-subtle shadow-sm">
-            <h2 className="font-bold text-text-primary mb-4">Items Added</h2>
-            <div className="space-y-4">
+          <div className="bg-white rounded-[24px] p-5 border border-transparent shadow-native">
+            <h2 className="font-heading font-black text-[16px] text-text-primary mb-4 uppercase tracking-tight">Items Added</h2>
+            <div className="space-y-5">
               {cart.items.map((item) => (
-                <div key={item.id} className="flex gap-3">
+                <div key={item.id} className="flex gap-4">
                   <div className="mt-1">{item.isVeg ? <VegIcon /> : <NonVegIcon />}</div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-text-primary text-sm leading-tight mb-1">{item.name}</h3>
-                    <p className="font-bold text-text-primary text-sm">₹{item.price + foodMarkup}</p>
+                    <h3 className="font-heading font-bold text-text-primary text-[15px] leading-tight mb-1">{item.name}</h3>
+                    <p className="font-bold text-gray-700 text-[13px]">₹{item.price + foodMarkup}</p>
                   </div>
                   
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center justify-between w-[80px] py-1 bg-white text-primary font-bold text-sm rounded-lg border border-primary">
-                      <button onClick={() => updateQuantity(cart.stallId!, cart.stallName!, item, -1)} className="w-1/3 flex justify-center py-1"><Minus size={14} /></button>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className="flex items-center justify-between w-[90px] py-1.5 bg-white text-primary font-bold text-[14px] rounded-[12px] shadow-sm border border-gray-200">
+                      <button onClick={() => updateQuantity(cart.stallId!, cart.stallName!, item, -1)} className="w-1/3 flex justify-center py-1 active:scale-90 transition-transform"><Minus size={14} /></button>
                       <span>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(cart.stallId!, cart.stallName!, item, 1)} className="w-1/3 flex justify-center py-1"><Plus size={14} /></button>
+                      <button onClick={() => updateQuantity(cart.stallId!, cart.stallName!, item, 1)} className="w-1/3 flex justify-center py-1 active:scale-90 transition-transform"><Plus size={14} /></button>
                     </div>
-                    <span className="font-bold text-text-primary text-xs">₹{(item.price + foodMarkup) * item.quantity}</span>
+                    <span className="font-bold text-text-primary text-[14px]">₹{(item.price + foodMarkup) * item.quantity}</span>
                   </div>
                 </div>
               ))}
             </div>
-            <button onClick={clearCart} className="mt-4 text-red-500 hover:text-red-600 text-xs font-bold flex items-center gap-1 transition-colors">
+            <button onClick={clearCart} className="mt-5 text-red-500 hover:text-red-600 text-[12px] font-bold flex items-center gap-1 transition-colors bg-red-50 px-3 py-2 rounded-[10px]">
               <Trash2 size={14} /> Clear Cart
             </button>
           </div>
@@ -709,18 +700,22 @@ export default function Cart() {
           </div>
 
           {/* Collapsible Bill Details */}
-          <div className="bg-white rounded-2xl border border-border-subtle shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[24px] border border-transparent shadow-native overflow-hidden">
             <button 
               onClick={() => setIsBillExpanded(!isBillExpanded)}
-              className="w-full p-4 flex justify-between items-center text-left hover:bg-bg-alt transition-colors"
+              className="w-full p-5 flex justify-between items-center text-left hover:bg-gray-50 transition-colors"
             >
-              <div className="flex items-center gap-2">
-                <Banknote size={20} className="text-text-muted" />
-                <span className="text-text-primary font-medium text-sm">Total Bill</span>
-                <span className="font-bold text-text-primary text-base ml-1">₹{finalTotal}</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500">
+                  <Banknote size={20} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-heading font-black text-text-primary text-[15px] uppercase tracking-tight">Total Bill</span>
+                  <span className="text-[12px] text-gray-500 font-medium">To pay: <strong className="text-gray-900">₹{finalTotal}</strong></span>
+                </div>
               </div>
-              <div className="text-text-muted flex items-center gap-1 text-xs">
-                {isBillExpanded ? 'Hide Details' : 'Show Details'}
+              <div className="text-primary flex items-center gap-1 text-[12px] font-bold">
+                {isBillExpanded ? 'Hide' : 'Show'}
                 {isBillExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </div>
             </button>
@@ -731,20 +726,25 @@ export default function Cart() {
                   initial={{ height: 0 }}
                   animate={{ height: "auto" }}
                   exit={{ height: 0 }}
-                  className="overflow-hidden border-t border-border-subtle bg-bg-main"
+                  className="overflow-hidden border-t border-dashed border-gray-200 bg-white"
                 >
-                  <div className="p-4 space-y-3 text-sm text-text-muted">
+                  <div className="p-5 space-y-3.5 text-[13px] text-text-muted font-medium">
                     <div className="flex justify-between">
                       <span>Item Total</span>
-                      <span>₹{itemTotal}</span>
+                      <span className="text-gray-900">₹{itemTotal}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Delivery Fee</span>
-                      <span>₹{deliveryFee}</span>
+                      <span className="text-gray-900">₹{deliveryFee}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Taxes & Charges (5%)</span>
-                      <span>₹{GST}</span>
+                      <span className="text-gray-900">₹{GST}</span>
+                    </div>
+                    
+                    <div className="pt-3 mt-1 border-t border-gray-100 flex justify-between font-heading font-black text-[15px] text-gray-900">
+                      <span>Grand Total</span>
+                      <span>₹{finalTotal}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -763,30 +763,30 @@ export default function Cart() {
 
         {/* Floating Payment Bar */}
         <div className="fixed bottom-0 left-0 right-0 z-40 px-4 sm:px-6 xl:px-0 max-w-2xl mx-auto pb-4">
-          <div className="bg-white rounded-2xl shadow-[0_-8px_20px_rgba(0,0,0,0.08)] border border-border-subtle overflow-hidden">
+          <div className="bg-white rounded-[24px] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] border border-transparent overflow-hidden">
             
             {/* Payment Method Selector */}
-            <div className="flex border-b border-border-subtle bg-bg-alt">
+            <div className="flex border-b border-gray-100 bg-gray-50/50">
               <button 
                 onClick={() => setPaymentMethod('upi')}
-                className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 ${paymentMethod === 'upi' ? 'bg-white text-primary border-b-2 border-primary shadow-sm' : 'text-text-muted hover:text-text-primary'}`}
+                className={`flex-1 py-3.5 text-[13px] font-bold flex items-center justify-center gap-2 transition-all ${paymentMethod === 'upi' ? 'bg-white text-primary border-b-2 border-primary shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
               >
                 <Wallet size={16} /> Pay via UPI
               </button>
               <button 
                 onClick={() => setPaymentMethod('cod')}
-                className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 ${paymentMethod === 'cod' ? 'bg-white text-primary border-b-2 border-primary shadow-sm' : 'text-text-muted hover:text-text-primary'}`}
+                className={`flex-1 py-3.5 text-[13px] font-bold flex items-center justify-center gap-2 transition-all ${paymentMethod === 'cod' ? 'bg-white text-primary border-b-2 border-primary shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
               >
                 <Banknote size={16} /> Cash on Delivery
               </button>
             </div>
 
             {/* Place Order Button Area */}
-            <div className="p-4 bg-white">
+            <div className="p-4 sm:p-5 bg-white">
               <button 
                 onClick={handlePlaceOrder}
                 disabled={isPlacingOrder || !selectedAddressId}
-                className="w-full font-bold text-white bg-primary hover:bg-primary-hover py-3.5 rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+                className="w-full font-bold text-white bg-primary hover:bg-primary-hover py-4 rounded-[16px] shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transition-all active:scale-95"
               >
                 {isPlacingOrder ? (
                   <Loader2 className="animate-spin" size={20} />
@@ -795,12 +795,11 @@ export default function Cart() {
                 )}
               </button>
               {!selectedAddressId && (
-                 <p className="text-red-500 text-[10px] text-center mt-2 font-semibold">Please select a delivery address to place your order.</p>
+                 <p className="text-red-500 text-[11px] text-center mt-2.5 font-semibold bg-red-50 py-1.5 rounded-lg">Please select a delivery address</p>
               )}
             </div>
-
-          </div>
         </div>
+      </div>
       </div>
 
       {/* Map Modal */}

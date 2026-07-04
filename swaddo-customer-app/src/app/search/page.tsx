@@ -134,11 +134,11 @@ export default function Search() {
   const allMatchedStalls = Array.from(allStallsMap.values());
 
   return (
-    <div className="min-h-screen bg-gray-50 font-body pb-24">
+    <div className="min-h-screen bg-bg-main font-body pb-24 app-scroll-container">
       {/* Header & Search Bar */}
-      <div className="sticky top-0 z-20 bg-white shadow-sm pt-4 pb-3 px-4 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
-          <ArrowLeft size={22} className="text-gray-700" />
+      <div className="sticky top-0 z-30 bg-bg-main/90 backdrop-blur-xl pt-4 pb-4 px-4 sm:px-6 xl:px-8 flex items-center gap-3 border-b border-border-subtle/50">
+        <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 transition-colors shadow-sm">
+          <ArrowLeft size={20} className="text-text-primary" />
         </button>
         
         <div className="flex-1 relative">
@@ -156,15 +156,15 @@ export default function Search() {
               }
             }}
             placeholder="Search for restaurants and food" 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-4 pr-12 text-sm font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-inner"
+            className="w-full bg-white border border-transparent rounded-[16px] py-3.5 pl-5 pr-14 text-[14px] font-medium outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/10 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
           />
           {query ? (
-            <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600">
-              <X size={18} />
+            <button onClick={() => setQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-full">
+              <X size={16} />
             </button>
           ) : (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 flex items-center pr-1 border-l border-gray-200 pl-2">
-              <button onClick={startVoiceSearch} className="p-1.5 text-primary hover:bg-red-50 rounded-lg transition-colors">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 flex items-center pr-1 border-l border-gray-100 pl-2">
+              <button onClick={startVoiceSearch} className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors active:scale-95">
                  <Mic size={20} />
               </button>
             </div>
@@ -172,32 +172,32 @@ export default function Search() {
         </div>
       </div>
 
-      <div className="px-4 mt-6 max-w-3xl mx-auto">
+      <div className="px-4 sm:px-6 xl:px-8 mt-6 max-w-3xl mx-auto">
         {viewState === 'empty' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             {recentSearches.length > 0 && (
               <>
-                <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <h3 className="font-heading font-black text-[15px] uppercase tracking-tight text-text-primary mb-4 flex items-center gap-2">
                   <Clock size={16} className="text-gray-400" />
                   Recent Searches
                 </h3>
-                <div className="flex flex-wrap gap-2 mb-8">
+                <div className="flex flex-wrap gap-2.5 mb-8">
                   {recentSearches.map(s => (
-                    <button key={s} onClick={() => executeSearch(s, 'dish')} className="px-4 py-2 rounded-full border border-gray-200 text-sm font-medium text-gray-600 hover:border-primary hover:text-primary transition-colors bg-white">
-                      {s}
+                    <button key={s} onClick={() => executeSearch(s, 'dish')} className="px-4 py-2 rounded-[12px] border border-gray-200 text-[13px] font-bold text-gray-600 hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors bg-white shadow-sm flex items-center gap-1.5">
+                      <SearchIcon size={12} className="text-gray-400" /> {s}
                     </button>
                   ))}
                 </div>
               </>
             )}
 
-            <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <h3 className="font-heading font-black text-[15px] uppercase tracking-tight text-text-primary mb-4 flex items-center gap-2">
               <TrendingUp size={16} className="text-primary" />
               Popular Cuisines
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {popularCuisines.map(c => (
-                <button key={c} onClick={() => executeSearch(c, 'dish')} className="px-4 py-2 rounded-xl bg-white border border-gray-100 shadow-sm text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-primary hover:border-primary transition-all">
+                <button key={c} onClick={() => executeSearch(c, 'dish')} className="px-4 py-2.5 rounded-[14px] bg-white border border-transparent shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-[13px] font-bold text-gray-700 hover:bg-primary/5 hover:text-primary hover:border-primary/20 transition-all">
                   {c}
                 </button>
               ))}
@@ -206,10 +206,10 @@ export default function Search() {
         )}
 
         {viewState === 'typing' && (
-          <div className="flex flex-col gap-1 bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
+          <div className="flex flex-col gap-1 bg-white rounded-[24px] p-2 shadow-native border border-transparent">
             <button 
               onClick={() => executeSearch(query, 'dish')}
-              className="w-full text-left py-3 px-2 border-b border-gray-50 flex items-center gap-3 hover:bg-gray-50 active:bg-gray-100 transition-colors rounded-lg group"
+              className="w-full text-left py-3.5 px-3 border-b border-gray-50 flex items-center gap-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors rounded-xl group"
             >
               <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-500 shrink-0 group-hover:bg-white group-hover:shadow-sm">
                 <SearchIcon size={18} />
@@ -218,9 +218,9 @@ export default function Search() {
             </button>
             <button 
               onClick={() => executeSearch(query, 'restaurant')}
-              className="w-full text-left py-3 px-2 flex items-center gap-3 hover:bg-gray-50 active:bg-gray-100 transition-colors rounded-lg group"
+              className="w-full text-left py-3.5 px-3 flex items-center gap-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors rounded-xl group"
             >
-              <div className="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-primary shrink-0">
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary shrink-0">
                 <SearchIcon size={18} />
               </div>
               <div className="flex-1">
@@ -246,23 +246,23 @@ export default function Search() {
                   No dishes found for "{query}" {isVegMode && " (Pure Veg)"}
                 </div>
               ) : (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                   {filteredDishes.map(dish => {
                     const qty = cart.stallId === dish.stall_id.toString() ? (cart.items.find(i => i.id === dish.id.toString())?.quantity || 0) : 0;
                     
                     return (
-                      <div key={dish.id} className={`flex flex-col bg-white p-4 rounded-2xl shadow-sm border border-gray-100 ${!dish.is_open ? 'opacity-70 grayscale-[0.2]' : ''}`}>
+                      <div key={dish.id} className={`flex flex-col bg-white p-4 sm:p-5 rounded-[24px] shadow-native border border-transparent ${!dish.is_open ? 'opacity-70 grayscale-[0.2]' : ''}`}>
                         
                         {/* Restaurant Context Header */}
-                        <Link href={`/stall?id=${dish.stall_id}`} className="flex items-center justify-between border-b border-gray-50 pb-3 mb-3 hover:bg-gray-50 -mt-2 -mx-2 px-2 pt-2 rounded-t-xl transition-colors">
+                        <Link href={`/stall?id=${dish.stall_id}`} className="flex items-center justify-between border-b border-gray-100/50 pb-3 mb-3 hover:bg-gray-50/50 -mt-2 -mx-2 sm:-mx-3 px-2 sm:px-3 pt-2 rounded-t-2xl transition-colors">
                           <div className="flex flex-col">
-                            <span className="font-bold text-sm text-gray-600 flex items-center gap-1.5 hover:text-primary">
+                            <span className="font-bold text-[13px] text-gray-500 flex items-center gap-1.5 hover:text-primary uppercase tracking-wide">
                               By {dish.stall_name} <ArrowUpRight size={12} />
                             </span>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><Star size={10} className="fill-yellow-400 text-yellow-400"/> {dish.rating}</span>
+                              <span className="text-[11px] text-gray-600 font-bold flex items-center gap-1 bg-green-50 px-1.5 py-0.5 rounded-md"><Star size={10} className="fill-green-600 text-green-600"/> {dish.rating}</span>
                               <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                              <span className="text-[10px] text-gray-400 font-medium">{dish.location}</span>
+                              <span className="text-[11px] text-gray-400 font-medium">{dish.location}</span>
                             </div>
                           </div>
                         </Link>
@@ -270,37 +270,37 @@ export default function Search() {
                         {/* Dish Content */}
                         <div className="flex gap-4">
                           <div className="flex-1 flex flex-col justify-start pr-2">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1.5">
                               {dish.is_veg ? <VegIcon /> : <NonVegIcon />}
                             </div>
-                            <h3 className="font-bold text-gray-800 text-[16px] leading-tight mb-1">{dish.name}</h3>
-                            <p className="font-bold text-gray-900 text-[14px] mb-1">₹{Number(dish.price)}</p>
-                            <p className="text-gray-500 text-xs line-clamp-2 leading-relaxed">{dish.description || 'Delicious and freshly prepared.'}</p>
+                            <h3 className="font-heading font-bold text-gray-900 text-[17px] leading-tight mb-1.5">{dish.name}</h3>
+                            <p className="font-bold text-gray-900 text-[15px] mb-2">₹{Number(dish.price)}</p>
+                            <p className="text-gray-500 text-[13px] line-clamp-2 leading-relaxed font-medium">{dish.description || 'Delicious and freshly prepared.'}</p>
                           </div>
                           
-                          <div className="relative shrink-0 flex flex-col items-center w-[120px]">
-                            <div className="w-[120px] h-[120px] rounded-xl overflow-hidden bg-gray-50 shadow-sm border border-gray-100">
+                          <div className="relative shrink-0 flex flex-col items-center w-[130px]">
+                            <div className="w-[130px] h-[130px] rounded-[20px] overflow-hidden bg-gray-50 shadow-sm border border-gray-100">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={dish.image_url || `https://source.unsplash.com/400x300/?food,${dish.name.split(' ')[0]}`} alt={dish.name} className="w-full h-full object-cover" />
                             </div>
                             
-                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-20">
+                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-[100px]">
                               {!dish.is_open ? (
-                                <div className="w-full py-1.5 bg-white text-gray-500 shadow-md border border-gray-200 text-[10px] font-black text-center rounded-lg uppercase tracking-wider">
+                                <div className="w-full py-2 bg-gray-100 text-gray-500 shadow-md border border-gray-200 text-[11px] font-black text-center rounded-[12px] uppercase tracking-wider">
                                   Closed
                                 </div>
                               ) : qty === 0 ? (
                                 <button 
                                   onClick={() => handleUpdateCartLocal(dish, 1)}
-                                  className="w-full py-1.5 bg-white text-green-700 shadow-md border border-gray-100 font-black text-[14px] text-center rounded-lg uppercase hover:bg-gray-50 transition-colors"
+                                  className="w-full py-2 bg-white text-primary shadow-md border border-gray-100 font-black text-[15px] text-center rounded-[12px] uppercase hover:bg-gray-50 active:scale-95 transition-all"
                                 >
                                   ADD
                                 </button>
                               ) : (
-                                <div className="flex items-center justify-between w-full h-9 bg-white text-green-700 font-black text-lg rounded-lg shadow-md border border-gray-100 overflow-hidden">
-                                  <button onClick={() => dish.is_open && handleUpdateCartLocal(dish, -1)} className="w-1/3 h-full flex justify-center items-center hover:bg-green-50 text-gray-600"><Minus size={14} /></button>
-                                  <span className="text-[14px]">{qty}</span>
-                                  <button onClick={() => dish.is_open && handleUpdateCartLocal(dish, 1)} className="w-1/3 h-full flex justify-center items-center hover:bg-green-50"><Plus size={14} /></button>
+                                <div className="flex items-center justify-between w-full h-10 bg-white text-primary font-black text-lg rounded-[12px] shadow-md border border-gray-100 overflow-hidden">
+                                  <button onClick={() => dish.is_open && handleUpdateCartLocal(dish, -1)} className="w-1/3 h-full flex justify-center items-center hover:bg-primary/5 text-gray-600"><Minus size={14} /></button>
+                                  <span className="text-[15px]">{qty}</span>
+                                  <button onClick={() => dish.is_open && handleUpdateCartLocal(dish, 1)} className="w-1/3 h-full flex justify-center items-center hover:bg-primary/5"><Plus size={14} /></button>
                                 </div>
                               )}
                             </div>
@@ -319,36 +319,36 @@ export default function Search() {
                   No restaurants found for "{query}"
                 </div>
               ) : (
-                <div className="flex flex-col gap-4">
-                  <h3 className="font-bold text-gray-800 mb-2">Restaurants for {query}</h3>
+                <div className="flex flex-col gap-5">
+                  <h3 className="font-heading font-black text-[15px] uppercase tracking-tight text-gray-800 mb-2">Restaurants for {query}</h3>
                   {allMatchedStalls.map(stall => (
                     <Link key={stall.id} href={`/stall?id=${stall.id}`} className="block">
-                      <div className={`flex gap-4 p-3 bg-white rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md ${!stall.is_open ? "opacity-70 grayscale-[0.3]" : ""}`}>
-                        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shrink-0 relative bg-gray-100">
+                      <div className={`flex gap-4 p-4 bg-white rounded-[24px] shadow-native border border-transparent transition-all hover:scale-[1.01] ${!stall.is_open ? "opacity-70 grayscale-[0.3]" : ""}`}>
+                        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-[20px] overflow-hidden shrink-0 relative bg-gray-100">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={stall.cover_image || `https://picsum.photos/seed/${stall.id}/200`} alt={stall.name} className="w-full h-full object-cover" />
                           {!stall.is_open && (
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                              <span className="text-[10px] font-bold text-white bg-black/60 px-2 py-1 rounded">CLOSED</span>
+                              <span className="text-[10px] font-black text-white bg-black/60 px-2 py-1 rounded-[6px] tracking-wider">CLOSED</span>
                             </div>
                           )}
                         </div>
                         
                         <div className="flex flex-col flex-1 py-1">
-                          <div className="flex justify-between items-start mb-1">
-                            <h3 className="font-bold text-[17px] text-gray-900 line-clamp-1">{stall.name}</h3>
-                            <div className="flex items-center gap-1 bg-green-700 px-1.5 py-0.5 rounded shadow-sm shrink-0">
-                              <span className="text-[11px] font-bold text-white">{stall.rating || 4.5}</span>
+                          <div className="flex justify-between items-start mb-1.5">
+                            <h3 className="font-heading font-bold text-[18px] text-gray-900 line-clamp-1">{stall.name}</h3>
+                            <div className="flex items-center gap-1 bg-green-700 px-1.5 py-0.5 rounded-[6px] shadow-sm shrink-0">
+                              <span className="text-[12px] font-bold text-white">{stall.rating || 4.5}</span>
                               <Star size={10} className="fill-white text-white" />
                             </div>
                           </div>
                           
-                          <div className="flex items-center gap-1.5 text-gray-500 text-sm font-medium mb-2">
+                          <div className="flex items-center gap-1.5 text-gray-500 text-[13px] font-medium mb-3">
                             <MapPin size={14} />
                             <span className="line-clamp-1">{stall.location || stall.tags || 'Food & Dining'}</span>
                           </div>
                           
-                          <div className="mt-auto flex items-center gap-1.5 text-primary text-xs font-bold bg-orange-50 w-max px-2 py-1 rounded-md">
+                          <div className="mt-auto flex items-center gap-1.5 text-primary text-[11px] font-black bg-primary/10 w-max px-2.5 py-1.5 rounded-[8px] uppercase tracking-wide">
                             <Percent size={12} />
                             60% OFF up to ₹120
                           </div>

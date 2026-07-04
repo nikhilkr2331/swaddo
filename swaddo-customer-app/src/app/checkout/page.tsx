@@ -462,25 +462,26 @@ export default function Checkout() {
 
   return (
     <>
-      <div className="min-h-screen bg-bg-main pb-32 xl:pb-12 xl:pt-8 px-4 sm:px-6 xl:px-0 max-w-5xl mx-auto">
+      <div className="app-scroll-container bg-bg-main pb-32 xl:pb-12 xl:pt-8 font-body">
         <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       
-      <div className="flex items-center gap-3 py-4 xl:mb-6">
-        <button onClick={() => router.back()} className="text-text-primary hover:text-primary transition-colors xl:hidden">
-          <ArrowLeft size={24} />
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-20 bg-bg-main/90 backdrop-blur-md py-4 px-4 sm:px-6 flex items-center gap-3 xl:mb-6 border-b border-border-subtle/50">
+        <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 transition-colors shadow-sm xl:hidden">
+          <ArrowLeft size={20} className="text-text-primary" />
         </button>
-        <h1 className="text-2xl font-heading font-bold text-text-primary">Checkout</h1>
+        <h1 className="text-xl font-heading font-black text-text-primary uppercase tracking-tight">Checkout</h1>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-8 items-start">
+      <div className="flex flex-col xl:flex-row gap-8 items-start px-4 sm:px-6 xl:px-0 max-w-5xl mx-auto mt-4">
         
         <div className="flex-1 w-full space-y-6">
           
-          <div className="bg-bg-alt rounded-2xl border border-border-subtle p-5 shadow-sm">
+          <div className="bg-white rounded-[24px] border border-transparent shadow-native p-5">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-heading font-bold text-xl text-text-primary">Deliver to</h2>
-              <button onClick={() => setIsMapOpen(true)} className="text-primary text-sm font-bold flex items-center gap-1 hover:text-primary-hover transition-colors">
-                <MapPin size={16} /> Add New Address
+              <h2 className="font-heading font-black text-[18px] text-text-primary uppercase tracking-tight">Deliver to</h2>
+              <button onClick={() => setIsMapOpen(true)} className="text-primary text-[13px] font-bold flex items-center gap-1 hover:text-primary-hover transition-colors">
+                <MapPin size={14} /> Add New
               </button>
             </div>
             
@@ -495,23 +496,23 @@ export default function Checkout() {
                 </div>
               ) : (
                 savedAddresses.map(addr => (
-                  <label key={addr.id} className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-primary bg-primary/5 shadow-sm' : 'border-border-subtle hover:bg-bg-main'}`}>
+                  <label key={addr.id} className={`flex items-start gap-4 p-4 rounded-[16px] cursor-pointer transition-all border ${selectedAddressId === addr.id ? 'border-primary bg-primary/5 shadow-sm' : 'border-transparent bg-gray-50 hover:bg-gray-100'}`}>
                     <input 
                       type="radio" 
                       name="deliveryAddress" 
-                      className="mt-1 accent-primary w-4 h-4" 
+                      className="mt-1 accent-primary w-4 h-4 shrink-0" 
                       checked={selectedAddressId === addr.id}
                       onChange={() => setSelectedAddressId(addr.id)}
                     />
                     <div className="flex flex-col flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-sm text-text-primary flex items-center gap-1.5">{addr.tag === 'Home' ? <Home size={14} /> : addr.tag === 'Work' ? <Briefcase size={14} /> : <MapPin size={14} />} {addr.tag}</span>
-                        {addr.customerName && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">{addr.customerName}</span>}
+                        <span className="font-bold text-[14px] text-text-primary flex items-center gap-1.5">{addr.tag === 'Home' ? <Home size={14} /> : addr.tag === 'Work' ? <Briefcase size={14} /> : <MapPin size={14} />} {addr.tag}</span>
+                        {addr.customerName && <span className="text-[10px] bg-white border border-gray-200 text-gray-700 px-1.5 py-0.5 rounded uppercase font-bold">{addr.customerName}</span>}
                       </div>
-                      <p className="text-text-primary text-sm font-bold mt-1">
+                      <p className="text-text-primary text-[13px] font-bold mt-1">
                         {addr.houseNumber}
                       </p>
-                      <p className="text-text-muted text-xs leading-relaxed mt-1">
+                      <p className="text-text-muted text-[12px] leading-relaxed mt-0.5">
                         {addr.fullAddress}
                       </p>
                     </div>
@@ -547,24 +548,24 @@ export default function Checkout() {
             )}
           </div>
 
-          <div className="pt-2">
-            <h2 className="font-heading font-bold text-xl text-text-primary mb-4">Payment Method</h2>
+          <div className="pt-2 pb-6">
+            <h2 className="font-heading font-black text-[18px] text-text-primary mb-4 uppercase tracking-tight pl-1">Payment Method</h2>
             
             <div className="space-y-3">
               <button 
                 onClick={() => setPaymentMethod("upi")}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
+                className={`w-full flex items-center gap-4 p-4 rounded-[16px] border transition-all text-left ${
                   paymentMethod === "upi" 
                     ? "border-primary bg-primary/5 shadow-sm" 
-                    : "border-border-subtle bg-bg-alt hover:bg-bg-main"
+                    : "border-transparent bg-white shadow-native hover:shadow-native-lg"
                 }`}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${paymentMethod === "upi" ? "bg-primary text-white" : "bg-bg-main text-text-muted"}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${paymentMethod === "upi" ? "bg-primary text-white" : "bg-gray-50 text-text-muted"}`}>
                   <Wallet size={20} />
                 </div>
                 <div className="flex flex-col flex-1">
-                  <span className="font-bold text-text-primary">Pay via UPI</span>
-                  <span className="text-xs text-text-muted mt-0.5">Google Pay, PhonePe, Paytm</span>
+                  <span className="font-bold text-text-primary text-[14px]">Pay via UPI</span>
+                  <span className="text-[11px] text-text-muted mt-0.5 font-medium">Google Pay, PhonePe, Paytm</span>
                 </div>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "upi" ? "border-primary" : "border-border-subtle"}`}>
                   {paymentMethod === "upi" && <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>}
@@ -573,45 +574,30 @@ export default function Checkout() {
 
               <button 
                 onClick={() => setPaymentMethod("cod")}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
+                className={`w-full flex items-center gap-4 p-4 rounded-[16px] border transition-all text-left ${
                   paymentMethod === "cod" 
                     ? "border-primary bg-primary/5 shadow-sm" 
-                    : "border-border-subtle bg-bg-alt hover:bg-bg-main"
+                    : "border-transparent bg-white shadow-native hover:shadow-native-lg"
                 }`}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${paymentMethod === "cod" ? "bg-primary text-white" : "bg-bg-main text-text-muted"}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${paymentMethod === "cod" ? "bg-primary text-white" : "bg-gray-50 text-text-muted"}`}>
                   <Banknote size={20} />
                 </div>
                 <div className="flex flex-col flex-1">
-                  <span className="font-bold text-text-primary">Cash on Delivery</span>
+                  <span className="font-bold text-text-primary text-[14px]">Cash on Delivery</span>
                 </div>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "cod" ? "border-primary" : "border-border-subtle"}`}>
                   {paymentMethod === "cod" && <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>}
                 </div>
-              </button>
-
-              <button 
-                disabled
-                className="w-full flex items-center gap-4 p-4 rounded-xl border border-border-subtle bg-bg-alt opacity-60 text-left"
-              >
-                <div className="w-10 h-10 rounded-full bg-bg-main text-text-muted flex items-center justify-center shrink-0">
-                  <CreditCard size={20} />
-                </div>
-                <div className="flex flex-col flex-1">
-                  <span className="font-bold text-text-primary">Credit/Debit Card</span>
-                </div>
-                <span className="bg-text-muted text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">
-                  Coming Soon
-                </span>
               </button>
             </div>
           </div>
 
         </div>
 
-        <div className="w-full xl:w-[400px] shrink-0 space-y-6 xl:sticky xl:top-[120px]">
+        <div className="w-full xl:w-[400px] shrink-0 space-y-6 xl:sticky xl:top-[120px] pb-6">
           
-          <div className="bg-bg-alt rounded-2xl border border-border-subtle shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[24px] border border-transparent shadow-native overflow-hidden">
             <button 
               onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
               className="w-full p-5 flex justify-between items-center bg-bg-alt hover:bg-bg-main transition-colors text-left"
@@ -653,8 +639,8 @@ export default function Checkout() {
             </AnimatePresence>
           </div>
 
-          <div className="bg-bg-alt rounded-2xl border border-border-subtle p-5 shadow-sm">
-            <h3 className="font-heading font-bold text-text-primary text-lg mb-4">Bill Summary</h3>
+          <div className="bg-white rounded-[24px] border border-transparent shadow-native p-5">
+            <h3 className="font-heading font-black text-text-primary text-[16px] mb-4 uppercase tracking-tight">Bill Summary</h3>
             
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-text-primary">
@@ -681,7 +667,7 @@ export default function Checkout() {
             <button 
               onClick={handlePlaceOrder}
               disabled={isPlacingOrder}
-              className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+              className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-4 rounded-[16px] shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95"
             >
               {isPlacingOrder ? (
                 <Loader2 className="animate-spin" size={20} />
@@ -694,11 +680,11 @@ export default function Checkout() {
         </div>
       </div>
 
-      <div className="xl:hidden fixed bottom-[72px] left-0 right-0 p-4 bg-bg-alt border-t border-border-subtle shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-40">
+      <div className="xl:hidden fixed bottom-4 left-4 right-4 z-40">
         <button 
           onClick={handlePlaceOrder}
           disabled={isPlacingOrder}
-          className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+          className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-4 rounded-[16px] shadow-[0_8px_30px_rgba(226,64,28,0.3)] transition-all flex items-center justify-center gap-2 active:scale-95"
         >
           {isPlacingOrder ? (
             <Loader2 className="animate-spin" size={20} />

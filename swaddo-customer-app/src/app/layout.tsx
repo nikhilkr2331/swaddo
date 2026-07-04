@@ -43,7 +43,7 @@ export default function RootLayout({
               <TopNav />
             
             {/* Main Content Area */}
-            <main className="pb-20 xl:pb-0 xl:pt-20 min-h-screen relative">
+            <main className="app-scroll-container pb-24 xl:pb-0 xl:pt-20 relative">
               <SplashScreen />
               <PageTransitionWrapper>
                 {children}

@@ -233,63 +233,68 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen pb-24 bg-gray-50">
+    <div className="flex flex-col min-h-screen pb-24 bg-bg-main app-scroll-container">
       
       {/* Header Area (Mobile Only) */}
-      <div className="bg-white px-4 pt-3 pb-3 shadow-sm rounded-b-2xl xl:hidden sticky top-0 z-[60]">
-        <div className="max-w-7xl mx-auto flex flex-col gap-3">
+      <div className="bg-white/90 backdrop-blur-md px-4 pt-4 pb-3 shadow-sm xl:hidden sticky top-0 z-[60] border-b border-gray-100">
+        <div className="max-w-7xl mx-auto flex flex-col gap-4">
           
           {/* Top Row: Logo, Location & Bell */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-black font-heading text-lg shadow-md shrink-0">
-                S
+            <div className="flex items-center gap-2.5 flex-1">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 overflow-hidden">
+                <Image src="/icon.svg" alt="Logo" width={36} height={36} className="object-cover" />
               </div>
-              <div className="w-px h-6 bg-gray-200"></div>
-              <LocationSelector isMobile={true} />
+              <div className="flex flex-col flex-1 truncate">
+                 <div className="flex items-center gap-1">
+                    <MapPin size={14} className="text-primary fill-primary/20" />
+                    <span className="font-heading font-extrabold text-gray-900 text-sm tracking-tight">Home</span>
+                    <ChevronDown size={14} className="text-gray-500" />
+                 </div>
+                 <span className="text-[11px] text-gray-500 font-medium truncate pr-4">{formatAddress(userLocation.ready ? "Fetching..." : "Locating...")}</span>
+              </div>
             </div>
             
-            <button onClick={() => router.push("/notifications")} className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-700 relative hover:bg-gray-50 transition-colors bg-white shadow-sm shrink-0">
+            <button onClick={() => router.push("/profile")} className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-700 relative hover:bg-gray-50 transition-colors bg-white shadow-sm shrink-0">
               <Bell size={18} />
               <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white"></span>
             </button>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="text-primary group-focus-within:text-primary-hover transition-colors" size={20} />
+          {/* Search Bar & Veg Toggle */}
+          <div className="flex items-center gap-3 mt-1">
+            <div className="relative group flex-1">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="text-primary group-focus-within:text-primary-hover transition-colors" size={20} />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Restaurant name or a dish..." 
+                onClick={() => router.push("/search")}
+                className="w-full bg-gray-100 border-none rounded-2xl py-3 pl-12 pr-12 text-[14px] font-medium outline-none focus:bg-white focus:ring-1 focus:ring-primary/20 focus:shadow-native transition-all shadow-inner"
+              />
+              <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
+                 <button onClick={() => router.push("/search")} className="p-1.5 text-primary rounded-lg transition-colors">
+                   <Mic size={20} />
+                 </button>
+              </div>
             </div>
-            <input 
-              type="text" 
-              placeholder="Restaurant name or a dish..." 
-              onClick={() => router.push("/search")}
-              className="w-full bg-white border border-gray-200 rounded-2xl py-2.5 pl-10 pr-24 text-[13px] font-medium outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
-            />
-            <div className="absolute inset-y-0 right-0 pr-1 flex items-center">
-               
-               {/* Veg Toggle */}
-               <div 
-                 onClick={(e) => { e.stopPropagation(); toggleVegMode(); }}
-                 className="flex items-center gap-1.5 px-2 cursor-pointer group"
-               >
-                 <span className={`text-[10px] font-black tracking-wider transition-colors ${isVegMode ? 'text-green-600' : 'text-gray-400 group-hover:text-gray-600'}`}>VEG</span>
-                 <div className={`w-6 h-3.5 rounded-full p-0.5 flex items-center transition-colors ${isVegMode ? 'bg-green-600' : 'bg-gray-300'}`}>
-                   <div className={`w-2.5 h-2.5 bg-white rounded-full shadow-sm transform transition-transform ${isVegMode ? 'translate-x-2.5' : 'translate-x-0'}`}></div>
-                 </div>
+            
+            {/* Veg Toggle Filter */}
+            <div 
+               onClick={(e) => { e.stopPropagation(); toggleVegMode(); }}
+               className="flex items-center gap-1 px-2.5 h-[32px] rounded-full border border-gray-100 bg-white cursor-pointer group shadow-sm transition-all shrink-0"
+             >
+               <span className={`text-[10px] font-black tracking-wider transition-colors ${isVegMode ? 'text-green-600' : 'text-gray-600'}`}>VEG</span>
+               <div className={`w-6 h-3.5 rounded-full p-0.5 flex items-center transition-colors ${isVegMode ? 'bg-green-600' : 'bg-gray-200'}`}>
+                 <div className={`w-2.5 h-2.5 bg-white rounded-full shadow-sm transform transition-transform ${isVegMode ? 'translate-x-2.5' : 'translate-x-0'}`}></div>
                </div>
-
-               <div className="w-px h-4 bg-gray-200 mx-0.5"></div>
-
-               <button onClick={() => router.push("/search")} className="p-2 text-primary hover:bg-red-50 rounded-xl transition-colors">
-                 <Mic size={18} />
-               </button>
-            </div>
+             </div>
           </div>
         </div>
       </div>
 
-      <div className="px-4 xl:px-8 max-w-7xl mx-auto w-full mt-2">
+      <div className="px-4 xl:px-8 max-w-7xl mx-auto w-full mt-4">
 
         {/* Auto-sliding Banner Carousel */}
         <div className="w-[calc(100%+16px)] -mx-2 relative overflow-hidden rounded-[24px] shadow-sm mb-3" style={{ height: '240px' }}>
@@ -349,40 +354,48 @@ export default function Home() {
           )}
         </div>
 
-        {/* Categories: "What's on your mind?" */}
-        <div className="sticky top-[108px] sm:top-[110px] z-40 bg-gray-50 pt-1 pb-0 -mx-4 px-4 xl:-mx-8 xl:px-8 mb-0">
-          <div className="flex flex-col mb-2.5">
-            <h2 className="text-[22px] font-heading font-black text-gray-900 tracking-tight leading-none">Craving something? 🤤</h2>
-            <p className="text-[11px] font-bold text-primary uppercase tracking-wider mt-1.5">Pick a category to explore</p>
-          </div>
+        {/* Sticky Section for Categories and Restaurants Header */}
+        <div className="sticky top-[132px] sm:top-[75px] z-[50] bg-[#f8f9fa]/95 backdrop-blur-md -mx-4 px-4 xl:-mx-8 xl:px-8 pb-3 mb-4 shadow-[0_4px_15px_-10px_rgba(0,0,0,0.1)]">
           
-          <div className="flex overflow-x-auto gap-4 pt-2 pb-0 -mx-4 px-4 xl:-mx-8 xl:px-8 no-scrollbar">
-            {categories.map((cat) => (
-              <button
-                key={cat.name}
-                onClick={() => setActiveCategory(cat.name)}
-                className="flex flex-col items-center gap-2 shrink-0 group outline-none w-[72px]"
-              >
-                <div className={`relative w-[72px] h-[72px] shrink-0 rounded-full overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-105 group-active:scale-95 ${
-                  activeCategory === cat.name ? "ring-[3px] ring-primary ring-offset-2" : "ring-1 ring-gray-200"
-                }`}>
-                  <Image src={cat.image} alt={cat.name} fill sizes="72px" className="object-cover" />
-                </div>
-                <span className={`text-[11px] font-bold text-center leading-tight transition-colors ${
-                  activeCategory === cat.name ? "text-primary" : "text-gray-500 group-hover:text-gray-900"
-                }`}>
-                  {cat.name}
-                </span>
-              </button>
-            ))}
+          {/* Categories: "What's on your mind?" */}
+          <div className="pt-3 pb-2 border-b border-gray-100/50">
+            <div className="flex flex-col mb-3">
+               <h2 className="text-[20px] font-heading font-black text-gray-900 tracking-tight leading-none">Craving something? 🤤</h2>
+               <span className="text-[#e23744] text-[10px] font-bold tracking-widest uppercase mt-1">Pick a category to explore</span>
+            </div>
+            
+            <div className="flex overflow-x-auto gap-3 pb-1 no-scrollbar snap-x snap-mandatory -mx-4 px-4 xl:-mx-8 xl:px-8">
+              {categories.map((cat) => (
+                <button
+                  key={cat.name}
+                  onClick={() => setActiveCategory(cat.name)}
+                  className="flex flex-col items-center gap-1.5 shrink-0 group outline-none snap-start"
+                >
+                  <div className={`rounded-full p-[3px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95 ${
+                    activeCategory === cat.name ? "border-[2px] border-[#e23744]" : "border-[2px] border-transparent"
+                  }`}>
+                    <div className="relative w-[70px] h-[70px] sm:w-[78px] sm:h-[78px] rounded-full overflow-hidden bg-gray-50 shadow-inner">
+                      <Image src={cat.image} alt={cat.name} fill sizes="84px" className="object-cover" />
+                    </div>
+                  </div>
+                  <span className={`text-[11px] font-bold text-center leading-tight transition-colors ${
+                    activeCategory === cat.name ? "text-[#e23744]" : "text-gray-600 group-hover:text-gray-900"
+                  }`}>
+                    {cat.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Stalls List Header */}
+          <div className="flex justify-between items-center py-2 mt-1">
+            <h2 className="text-[18px] font-heading font-black text-gray-900 tracking-tight">Restaurants to explore</h2>
           </div>
         </div>
 
         {/* Stalls List */}
         <div>
-          <div className="sticky top-[272px] sm:top-[274px] z-30 bg-gray-50 pt-2.5 pb-2.5 -mx-4 px-4 xl:-mx-8 xl:px-8 mb-4 border-t border-b border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
-            <h2 className="text-lg font-heading font-black text-gray-900 tracking-tight">Restaurants to explore</h2>
-          </div>
 
           <motion.div 
             className="flex flex-col gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6"
@@ -409,19 +422,19 @@ export default function Home() {
                 .map((stall: any) => (
               <motion.div key={stall.id} variants={itemVariants} whileTap={{ scale: 0.98 }}>
                 <Link href={`/stall?id=${stall.id}`} className="block group">
-                  <div className={`flex flex-col bg-white/80 backdrop-blur-md rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white/40 overflow-hidden ${!stall.available ? "opacity-70 grayscale-[0.3]" : ""}`}>
+                  <div className={`flex flex-col bg-white rounded-[24px] shadow-native overflow-hidden border border-transparent hover:border-gray-100 hover:shadow-native-lg transition-all duration-300 ${!stall.available ? "opacity-70 grayscale-[0.3]" : ""}`}>
                     
                     {/* Image Section */}
-                    <div className="relative h-48 sm:h-44 w-full shrink-0 overflow-hidden rounded-t-3xl">
-                      <Image src={stall.image} alt={stall.name} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <div className="relative h-[200px] sm:h-48 w-full shrink-0 overflow-hidden">
+                      <Image src={stall.image} alt={stall.name} fill sizes="(max-width: 768px) 100vw, (maxwidth: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
                       
                       {/* Gradient Overlay for Offer text contrast */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
                       
                       {/* Top Badges */}
                       <div className="absolute top-3 left-3 flex gap-2">
                         {!stall.available && (
-                          <span className="bg-white/90 backdrop-blur-sm text-red-600 text-[10px] font-extrabold px-2 py-1 rounded shadow-sm uppercase tracking-wider">
+                          <span className="bg-white/95 text-red-600 text-[10px] font-extrabold px-2 py-1 rounded shadow-sm uppercase tracking-wider">
                             Closed Now
                           </span>
                         )}
@@ -430,58 +443,59 @@ export default function Home() {
                       <div className="absolute top-3 right-3">
                          <button 
                            onClick={(e) => toggleFavorite(stall, e)}
-                           className="w-8 h-8 rounded-full bg-white/50 backdrop-blur-md border border-white/60 flex items-center justify-center text-gray-800 hover:bg-white hover:text-red-500 transition-all active:scale-95 shadow-sm z-20 relative"
+                           className="w-8 h-8 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center text-gray-800 hover:bg-white hover:text-red-500 transition-all active:scale-95 z-20 relative"
                          >
                            <Heart size={16} className={favorites.includes(stall.id) ? "fill-red-500 text-red-500" : "text-white drop-shadow-md"} />
                          </button>
                       </div>
 
-                      {/* Offer Text */}
+                      {/* Offer Text (Zomato/Swiggy style huge text at bottom of image) */}
                       {stall.offer && (
-                        <div className="absolute bottom-3 left-4 flex items-center gap-1.5 text-white">
-                          <Percent size={18} className="text-blue-300 fill-blue-400 drop-shadow-md" />
-                          <span className="font-heading font-extrabold text-xl tracking-tight leading-none drop-shadow-md">
-                            {stall.offer}
+                        <div className="absolute bottom-2 left-3 text-white">
+                          <span className="font-heading font-black text-[22px] tracking-tight leading-none text-white/95">
+                            {stall.offer.split(' ').slice(0, 2).join(' ')}
+                          </span>
+                          <span className="block font-bold text-xs text-white/80 uppercase tracking-widest mt-0.5">
+                            {stall.offer.split(' ').slice(2).join(' ')}
                           </span>
                         </div>
                       )}
                     </div>
 
                     {/* Content Section */}
-                    <div className="p-4 bg-white/70 backdrop-blur-lg">
-                      <div className="flex justify-between items-start mb-1.5">
-                        <h3 className="font-heading font-bold text-lg text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">{stall.name}</h3>
+                    <div className="p-4 pt-3 bg-white">
+                      <div className="flex justify-between items-start mb-0.5">
+                        <h3 className="font-heading font-bold text-[18px] text-gray-900 line-clamp-1 group-hover:text-primary transition-colors tracking-tight">{stall.name}</h3>
                         
                         {/* Rating Pill */}
-                        <div className="flex flex-col items-center shrink-0 ml-3">
-                          <div className="flex items-center gap-1 bg-green-700 px-1.5 py-0.5 rounded-md shadow-sm mb-0.5">
-                            <span className="text-xs font-bold text-white">{stall.rating}</span>
-                            <Star size={10} className="fill-white text-white" />
-                          </div>
-                          <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">{stall.ratingsCount}</span>
+                        <div className="flex items-center gap-1 bg-green-600 px-1.5 py-0.5 rounded shadow-sm shrink-0 ml-3">
+                          <span className="text-[11px] font-bold text-white">{stall.rating}</span>
+                          <Star size={10} className="fill-white text-white" />
                         </div>
                       </div>
                       
-                      <div className="flex justify-between items-center text-gray-500 text-sm font-medium mb-1">
-                        <p className="line-clamp-1">{stall.category}</p>
-                        <p className="shrink-0 ml-2">{stall.priceForTwo}</p>
+                      <div className="flex justify-between items-center text-gray-500 text-[13px] font-medium mb-1.5">
+                        <p className="line-clamp-1 truncate">{stall.category}</p>
+                        <p className="shrink-0 ml-2 text-[12px]">{stall.priceForTwo}</p>
                       </div>
                       
-                      <p className="text-gray-500 text-xs font-medium mb-2 line-clamp-1">{formatAddress(stall.address)}</p>
-                      
-                      <div className="flex items-center gap-3 text-gray-500 text-xs font-bold mt-3 pt-3 border-t border-gray-100/60">
-                        <div className="flex items-center gap-1.5">
-                          <Clock size={14} className="text-gray-400" />
+                      <div className="flex items-center text-gray-500 text-[12px] font-medium gap-1.5">
+                        <div className="flex items-center gap-1">
+                          <Clock size={12} className="text-gray-400" />
                           <span>{stall.deliveryTime}</span>
                         </div>
-                        <div className="w-1 h-1 rounded-full bg-gray-300"></div>
-                        <div className="flex items-center gap-1.5">
-                          <MapPin size={14} className="text-gray-400" />
-                          <span>{stall.distance}</span>
-                        </div>
-                        <div className="w-1 h-1 rounded-full bg-gray-300"></div>
-                        <span className="text-primary font-bold">Live Tracking</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{stall.distance}</span>
                       </div>
+                      
+                      {stall.available && (
+                         <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
+                             <div className="w-4 h-4 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                                 <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+                             </div>
+                             <span className="text-[11px] text-gray-500 font-medium">Live tracking available</span>
+                         </div>
+                      )}
                     </div>
 
                   </div>
