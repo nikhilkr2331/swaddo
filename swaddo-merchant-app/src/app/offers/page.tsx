@@ -113,7 +113,16 @@ export default function OffersPage() {
         {activeTab === 'active' ? (
           <>
             {!stall ? (
-              <div className="flex justify-center p-10"><Loader2 className="animate-spin text-primary" /></div>
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-border-subtle h-40 animate-pulse flex flex-col justify-between">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+                  <div className="w-32 h-5 bg-gray-200 rounded"></div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="w-24 h-4 bg-gray-200 rounded"></div>
+                  <div className="w-full h-8 bg-gray-200 rounded-xl mt-2"></div>
+                </div>
+              </div>
             ) : !hasOffer ? (
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-border-subtle text-center">
                 <Tag className="mx-auto text-text-muted mb-3" size={40} />

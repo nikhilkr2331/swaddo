@@ -60,9 +60,19 @@ export default function Payouts() {
       
       <div className="space-y-4">
         {loading && history.length === 0 ? (
-          <div className="text-center py-10 opacity-50">
-            <RefreshCw size={24} className="mx-auto animate-spin mb-2" />
-            <p>Loading your history...</p>
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-bg-alt border border-border-subtle rounded-2xl p-4 flex justify-between items-center shadow-sm animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-16 bg-gray-200 rounded"></div>
+                    <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+                <div className="h-3 w-16 bg-gray-200 rounded"></div>
+              </div>
+            ))}
           </div>
         ) : history.length === 0 ? (
           <div className="text-center py-12 opacity-50 bg-bg-alt rounded-2xl border border-border-subtle">

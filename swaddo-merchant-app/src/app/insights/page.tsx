@@ -48,9 +48,33 @@ export default function InsightsPage() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center h-64">
-          <Loader2 className="animate-spin text-accent mb-4" size={32} />
-          <p className="text-text-muted font-medium">Loading insights...</p>
+        <div className="p-4 space-y-6">
+          {/* Skeleton Quick Stats Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-border-subtle h-28 animate-pulse flex flex-col justify-between">
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/3 mt-2"></div>
+            </div>
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-border-subtle h-28 animate-pulse flex flex-col justify-between">
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/3 mt-2"></div>
+            </div>
+          </div>
+          
+          {/* Skeleton Sales Chart Placeholder */}
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-border-subtle h-56 animate-pulse flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <div className="h-5 bg-gray-200 rounded w-1/3"></div>
+              <div className="h-5 bg-gray-200 rounded w-16"></div>
+            </div>
+            <div className="flex-1 flex items-end justify-between gap-2">
+              {[1,2,3,4,5,6,7].map(i => (
+                <div key={i} className="bg-gray-200 rounded-t-md w-full" style={{ height: `${Math.max(20, Math.random() * 100)}%` }}></div>
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         <div className="p-4 space-y-6">

@@ -19,17 +19,24 @@ export default function Dashboard() {
   const { data: statsRes, mutate: mutateStats } = useSWR('/stalls/merchant/stats', fetcher);
   const { data: ordersRes, mutate: mutateOrders } = useSWR('/orders?limit=100', fetcher);
 
-  const [isAcceptingOrders, setIsAcceptingOrders] = useState(false);
+  const [isAcceptingOrders, setIsAcceptingOrders] = useState(stallRes?.is_open ?? false);
   const [incomingOrder, setIncomingOrder] = useState<any>(null);
   const [stallInfo, setStallInfo] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'new'|'preparing'|'ready'|'completed'|'past'>('new');
   const [activeOrderDetails, setActiveOrderDetails] = useState<any>(null);
+  const [isTransitionReady, setIsTransitionReady] = useState(false);
   const router = useRouter();
   const alarmAudio = useRef<HTMLAudioElement | null>(null);
 
   const orders = ordersRes?.data || [];
   const stats = statsRes || { ordersToday: 0, revenueToday: 0, avgRating: 0 };
   const isInitializing = !ordersRes || !statsRes || !stallRes;
+
+  useEffect(() => {
+    // Delay adding transition classes to avoid mount animations
+    const t = setTimeout(() => setIsTransitionReady(true), 100);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (stallRes?.is_open !== undefined) {
@@ -355,12 +362,12 @@ export default function Dashboard() {
                 setIsAcceptingOrders(!newState); // revert on failure
               }
             }}
-            className={`w-14 h-8 rounded-full flex items-center p-1 ${isInitializing ? '' : 'transition-colors duration-300'} ${
+            className={`w-14 h-8 rounded-full flex items-center p-1 ${isTransitionReady ? 'transition-colors duration-300' : ''} ${
               isAcceptingOrders ? "bg-accent" : "bg-border-subtle"
             }`}
           >
             <div 
-              className={`w-6 h-6 rounded-full bg-white shadow-md transform ${isInitializing ? '' : 'transition-transform duration-300'} ${
+              className={`w-6 h-6 rounded-full bg-white shadow-md transform ${isTransitionReady ? 'transition-transform duration-300' : ''} ${
                 isAcceptingOrders ? "translate-x-6" : "translate-x-0"
               }`} 
             />

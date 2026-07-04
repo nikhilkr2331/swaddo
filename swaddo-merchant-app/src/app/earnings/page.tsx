@@ -56,9 +56,32 @@ export default function EarningsPage() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center h-64">
-          <Loader2 className="animate-spin text-accent mb-4" size={32} />
-          <p className="text-text-muted font-medium">Loading earnings...</p>
+        <div className="p-4 space-y-6">
+          {/* Skeleton Balance Card */}
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-border-subtle h-48 animate-pulse flex flex-col justify-between">
+            <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto mt-2"></div>
+            <div className="h-10 bg-gray-200 rounded w-1/2 mx-auto"></div>
+            <div className="h-12 bg-gray-200 rounded-xl w-full mt-4"></div>
+          </div>
+          
+          {/* Skeleton History */}
+          <div>
+            <div className="flex justify-between items-center mb-4 px-1">
+              <div className="h-6 bg-gray-200 rounded w-2/5 animate-pulse"></div>
+              <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
+            </div>
+            <div className="space-y-3">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="bg-white p-4 rounded-2xl h-20 shadow-sm animate-pulse flex justify-between items-center">
+                  <div className="space-y-2 w-1/2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                  <div className="h-5 bg-gray-200 rounded w-16"></div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         <div className="p-4 space-y-6">
