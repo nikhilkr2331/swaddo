@@ -200,12 +200,7 @@ export default function DiningPage() {
 
       {/* Coming Soon Overlay */}
       <div className="fixed inset-0 flex flex-col items-center justify-center z-[70] pointer-events-none pt-6 px-4">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
-          className="bg-white/70 backdrop-blur-3xl px-6 py-6 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/50 flex flex-col items-center text-center relative overflow-hidden max-w-[280px] w-full before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/40 before:to-transparent before:pointer-events-none"
-        >
+        <div className="bg-white/70 backdrop-blur-3xl px-6 py-6 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/50 flex flex-col items-center text-center relative overflow-hidden max-w-[280px] w-full before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/40 before:to-transparent before:pointer-events-none">
            <div className="absolute -top-16 -right-16 w-32 h-32 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
            <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-orange-400/20 rounded-full blur-3xl pointer-events-none"></div>
            
@@ -227,7 +222,7 @@ export default function DiningPage() {
              <span className="text-xs font-bold text-gray-800">Exclusive perks await</span>
              <span className="text-[10px] font-semibold text-gray-500">Don't miss out on our launch!</span>
            </div>
-        </motion.div>
+        </div>
       </div>
 
       <BottomNav />
