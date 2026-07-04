@@ -2,10 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  scroll-behavior: smooth;
+}
+
 body {
   @apply bg-bg-main text-text-primary font-body antialiased;
-  overscroll-behavior-y: none;
   /* Native App Feel Properties */
+  -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;

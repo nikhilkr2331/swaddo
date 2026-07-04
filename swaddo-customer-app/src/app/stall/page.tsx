@@ -304,7 +304,7 @@ function StallDetailContent() {
 
         {/* Category Chips (Sticky) */}
         <div className="sticky top-0 z-30 bg-gray-50 pt-2 pb-3 px-4 sm:px-6 xl:px-0">
-          <div className="flex overflow-x-auto gap-3 scrollbar-hide pb-2">
+          <div className="flex overflow-x-auto gap-3 scrollbar-hide pb-2 scroll-smooth">
             {dynamicCategories.map((cat) => (
               <button
                 key={cat}
