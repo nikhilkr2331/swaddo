@@ -206,14 +206,24 @@ export default function Checkout() {
   }, [mapSearchQuery]);
 
   const handleSaveAddress = async () => {
+    if (!customerPhone || customerPhone.length < 10) {
+      alert("Please enter a valid Phone Number");
+      return;
+    }
+
     let finalAddress = "Location Selected on Map";
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+
       const res = await fetch(`${baseUrl}/location/reverse-geocode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lat: mapLat, lng: mapLng })
+        body: JSON.stringify({ lat: mapLat, lng: mapLng }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       
       const data = await res.json();
       
