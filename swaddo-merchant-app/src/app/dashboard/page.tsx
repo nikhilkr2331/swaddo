@@ -197,7 +197,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed inset-0 z-50 bg-primary flex flex-col justify-center items-center p-6"
+            className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 bg-primary flex flex-col justify-center items-center p-6"
           >
             <motion.div 
               animate={{ scale: [1, 1.1, 1] }}
@@ -251,11 +251,13 @@ export default function Dashboard() {
 
         {/* Order Details Modal (View Details) */}
         {activeOrderDetails && !incomingOrder && (
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed inset-0 z-40 bg-black/50 flex flex-col justify-end"
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 bg-black/50 flex flex-col justify-end"
+            onClick={() => setActiveOrderDetails(null)}
           >
             <div className="bg-white rounded-t-3xl w-full p-6 shadow-xl max-h-[85vh] overflow-y-auto pb-24">
               <div className="flex justify-between items-center mb-6">

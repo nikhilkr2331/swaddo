@@ -210,12 +210,14 @@ export default function OffersPage() {
         {isModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 flex flex-col justify-end"
+            className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 bg-black/50 flex flex-col justify-end"
+            onClick={() => setIsModalOpen(false)}
           >
             <motion.div 
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="bg-white rounded-t-3xl w-full p-6 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-heading font-bold text-text-primary">Configure Offer</h2>

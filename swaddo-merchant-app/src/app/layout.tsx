@@ -25,16 +25,18 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className={`font-sans bg-bg-main text-text-primary antialiased`}>
+      <body className={`font-sans bg-gray-100 text-text-primary antialiased`}>
         <SWRProvider>
-          <SplashScreen />
-          <main className="pb-20">
-            <PageTransitionWrapper>
-              {children}
-            </PageTransitionWrapper>
-          </main>
-          <PWARegister />
-          <BottomNav />
+          <div className="app-container">
+            <SplashScreen />
+            <main className="pb-20">
+              <PageTransitionWrapper>
+                {children}
+              </PageTransitionWrapper>
+            </main>
+            <PWARegister />
+            <BottomNav />
+          </div>
         </SWRProvider>
       </body>
     </html>

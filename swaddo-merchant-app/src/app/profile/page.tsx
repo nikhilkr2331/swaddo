@@ -662,7 +662,7 @@ export default function ProfilePage() {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="fixed inset-0 z-50 bg-bg-main flex flex-col"
+            className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 bg-bg-main flex flex-col"
           >
             <div className="flex items-center justify-between p-4 border-b border-border-subtle">
               <h2 className="font-heading font-bold text-lg">
@@ -807,7 +807,7 @@ export default function ProfilePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-bg-main flex flex-col"
+            className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 bg-bg-main flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center gap-3 p-4 border-b border-border-subtle bg-bg-main">

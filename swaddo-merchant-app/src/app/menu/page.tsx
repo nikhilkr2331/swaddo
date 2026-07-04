@@ -338,7 +338,7 @@ export default function MenuPage() {
 
       {/* Add/Edit Item Modal Overlay */}
       {isAdding && (
-        <div className="fixed inset-0 z-[100] flex justify-center items-end sm:items-center bg-black/60 p-0 sm:p-6 transition-opacity">
+        <div className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-[100] flex justify-center items-end sm:items-center bg-black/60 p-0 sm:p-6 transition-opacity">
           <div className="bg-bg-alt w-full max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-full duration-300">
             
             {/* Modal Header */}

@@ -14,8 +14,18 @@
 }
 
 body {
-  background-color: theme('colors.bg.main');
+  background-color: #f3f4f6;
   color: theme('colors.text.primary');
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+}
+
+.app-container {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background-color: theme('colors.bg.main');
+  position: relative;
+  overflow-x: hidden;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
 }

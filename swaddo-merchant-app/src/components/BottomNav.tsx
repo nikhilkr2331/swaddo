@@ -18,7 +18,7 @@ export default function BottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 w-full bg-bg-alt border-t border-border-subtle pb-safe pt-2 px-6 shadow-[0_-4px_20px_rgba(43,36,32,0.05)] z-40">
+    <div className="fixed bottom-0 w-full max-w-md mx-auto left-1/2 -translate-x-1/2 bg-bg-alt border-t border-border-subtle pb-safe pt-2 px-6 shadow-[0_-4px_20px_rgba(43,36,32,0.05)] z-40">
       <div className="flex justify-around items-center h-16 max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`);
