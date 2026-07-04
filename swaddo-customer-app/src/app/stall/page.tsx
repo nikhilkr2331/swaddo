@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useMemo } from "react";
 import useSWR from "swr";
+import { StallCardShimmer, MenuItemShimmer } from "@/components/Shimmer";
 import { ArrowLeft, Share2, Star, Clock, MapPin, Plus, Minus, ShoppingBag, Loader2, Heart } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -34,8 +35,8 @@ function StallDetailContent() {
   const [itemMarkup, setItemMarkup] = useState(0);
 
   const fetcher = (url: string) => api.get(url).then(res => res.data);
-  const { data: stallRes, isLoading: stallLoading, mutate: mutateStall } = useSWR(stallId ? `/stalls/${stallId}` : null, fetcher, { revalidateOnFocus: false, dedupingInterval: 60000 });
-  const { data: menuRes, isLoading: menuLoading, mutate: mutateMenu } = useSWR(stallId ? `/stalls/${stallId}/menu` : null, fetcher, { revalidateOnFocus: false, dedupingInterval: 60000 });
+  const { data: stallRes, isLoading: stallLoading, mutate: mutateStall } = useSWR(stallId ? `/stalls/${stallId}` : null, fetcher, { revalidateOnFocus: false, dedupingInterval: 60000, keepPreviousData: true });
+  const { data: menuRes, isLoading: menuLoading, mutate: mutateMenu } = useSWR(stallId ? `/stalls/${stallId}/menu` : null, fetcher, { revalidateOnFocus: false, dedupingInterval: 60000, keepPreviousData: true });
   
   const stallData = stallRes?.data || stallRes;
   const rawMenuData = menuRes?.data || menuRes || [];
@@ -220,8 +221,17 @@ function StallDetailContent() {
 
   if (isLoading || !stallData) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary" size={40} />
+      <div className="min-h-screen bg-gray-50 pb-32">
+        <div className="w-full h-[180px] xl:h-[240px] bg-gray-200 animate-pulse"></div>
+        <div className="px-4 xl:px-8 py-5">
+          <div className="h-8 bg-gray-200 rounded-md w-1/2 mb-2 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded-md w-3/4 mb-6 animate-pulse"></div>
+          <div className="space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <MenuItemShimmer key={i} />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

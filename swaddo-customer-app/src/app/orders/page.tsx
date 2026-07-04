@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
+import { OrderCardShimmer } from "@/components/Shimmer";
 import { ArrowLeft, Clock, Star, CheckCircle2, XCircle, Loader2, ChevronRight, MapPin, RefreshCw, Route, ThumbsUp, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -38,8 +39,7 @@ export default function Orders() {
   const router = useRouter();
   const { clearCart, updateQuantity } = useCart();
   const fetcher = (url: string) => api.get(url).then(res => res.data);
-  const { data: ordersRes, isLoading, mutate: mutateOrders } = useSWR('/orders', fetcher, { revalidateOnFocus: false, dedupingInterval: 60000 });
-  
+  const { data: ordersRes, isLoading, mutate: mutateOrders } = useSWR('/orders', fetcher, { revalidateOnFocus: false, dedupingInterval: 60000, keepPreviousData: true });
   const rawOrders = ordersRes?.data || [];
   
   const orders = useMemo(() => {
@@ -171,10 +171,11 @@ export default function Orders() {
 
       <div className="max-w-3xl mx-auto mt-4 px-4 sm:px-6 space-y-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="animate-spin text-primary mb-4" size={32} />
-            <p className="text-gray-500 font-medium">Loading your delicious history...</p>
-          </div>
+          <>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <OrderCardShimmer key={i} />
+            ))}
+          </>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center pt-24 text-center">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6">

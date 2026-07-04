@@ -10,6 +10,7 @@ import { api } from "@/lib/api";
 import { io } from "socket.io-client";
 import LocationSelector from "@/components/LocationSelector";
 import useSWR from "swr";
+import { StallCardShimmer } from "@/components/Shimmer";
 
 const categories = [
   { name: "Biryani", image: "/categories/biryani.png" },
@@ -104,7 +105,7 @@ export default function Home() {
   const { data: stallsData, mutate: mutateStalls, isLoading } = useSWR(
     userLocation.ready ? `/stalls?lat=${userLocation.lat}&lng=${userLocation.lng}&vegOnly=${isVegMode}` : null,
     fetcher,
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, keepPreviousData: true }
   );
 
   useEffect(() => {
@@ -172,29 +173,31 @@ export default function Home() {
   }, []);
 
   // Process stalls from SWR cache
-  const stalls = stallsData?.data ? stallsData.data.map((s: any) => {
-    let dist = s.distance ? parseFloat(s.distance) : (1 + (parseInt(s.id) % 5));
-    if (!s.location || s.location === "Not Set") dist = 0;
-    const travelTime = Math.round(dist * 5); // 5 mins per km roughly
-    const prepTime = s.prep_time || 15;
-    const totalDeliveryTime = travelTime + prepTime;
+  const stalls = useMemo(() => {
+    return stallsData?.data ? stallsData.data.map((s: any) => {
+      let dist = s.distance ? parseFloat(s.distance) : (1 + (parseInt(s.id) % 5));
+      if (!s.location || s.location === "Not Set") dist = 0;
+      const travelTime = Math.round(dist * 5); // 5 mins per km roughly
+      const prepTime = s.prep_time || 15;
+      const totalDeliveryTime = travelTime + prepTime;
 
-    return {
-      id: s.id.toString(),
-      name: s.name,
-      address: s.location,
-      rating: s.rating,
-      ratingsCount: s.rating_count ? `${s.rating_count} RATINGS` : "120+ RATINGS",
-      time: `${s.opening_time || '09:00 AM'} - ${s.closing_time || '10:00 PM'}`,
-      category: s.tags || "North Indian, Biryani", 
-      available: s.is_open,
-      image: s.cover_image || `https://picsum.photos/seed/${s.id}/400/250`,
-      offer: s.offer_text || "",
-      priceForTwo: `₹${(parseInt(s.id) % 3 + 1) * 150} for one`,
-      deliveryTime: `${totalDeliveryTime} mins`,
-      distance: `${dist.toFixed(1)} km`
-    };
-  }) : [];
+      return {
+        id: s.id.toString(),
+        name: s.name,
+        address: s.location,
+        rating: s.rating,
+        ratingsCount: s.rating_count ? `${s.rating_count} RATINGS` : "120+ RATINGS",
+        time: `${s.opening_time || '09:00 AM'} - ${s.closing_time || '10:00 PM'}`,
+        category: s.tags || "North Indian, Biryani", 
+        available: s.is_open,
+        image: s.cover_image || `https://picsum.photos/seed/${s.id}/400/250`,
+        offer: s.offer_text || "",
+        priceForTwo: `₹${(parseInt(s.id) % 3 + 1) * 150} for one`,
+        deliveryTime: `${totalDeliveryTime} mins`,
+        distance: `${dist.toFixed(1)} km`
+      };
+    }) : [];
+  }, [stallsData]);
 
   useEffect(() => {
     // 2. Setup live socket listener for real-time updates
@@ -387,24 +390,10 @@ export default function Home() {
             initial="hidden"
             animate="show"
           >
-             {isLoading ? (
+             {!stallsData && isLoading ? (
               // Skeleton Loaders
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-                  <div className="h-48 sm:h-44 w-full bg-gray-200"></div>
-                  <div className="p-4 space-y-3">
-                    <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-                    <div className="flex justify-between">
-                      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                    </div>
-                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                    <div className="pt-3 border-t border-gray-100 flex gap-2">
-                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                    </div>
-                  </div>
-                </div>
+                <StallCardShimmer key={i} />
               ))
             ) : stalls.filter((stall: any) => stall.category.toLowerCase().includes(activeCategory.toLowerCase())).length === 0 ? (
               <div className="col-span-full py-10 text-center flex flex-col items-center">

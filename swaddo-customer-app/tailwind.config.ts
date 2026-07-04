@@ -18,6 +18,14 @@ const config: Config = {
         "text-muted": "#6B6259",
         "border-subtle": "rgba(43, 36, 32, 0.12)",
       },
+      keyframes: {
+        shimmer: {
+          '100%': { transform: 'translateX(100%)' },
+        }
+      },
+      animation: {
+        shimmer: 'shimmer 1.5s infinite',
+      },
       fontFamily: {
         heading: ["var(--font-heading)"],
         body: ["var(--font-body)"],
