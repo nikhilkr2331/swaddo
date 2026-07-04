@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
@@ -24,7 +24,6 @@ export default function Dashboard() {
   const [stallInfo, setStallInfo] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'new'|'preparing'|'ready'|'completed'|'past'>('new');
   const [activeOrderDetails, setActiveOrderDetails] = useState<any>(null);
-  const [isTransitionReady, setIsTransitionReady] = useState(false);
   const router = useRouter();
   const alarmAudio = useRef<HTMLAudioElement | null>(null);
 
@@ -37,10 +36,6 @@ export default function Dashboard() {
       setIsAcceptingOrders(stallRes.is_open);
     }
   }, [stallRes]);
-
-  useEffect(() => {
-    setIsTransitionReady(true);
-  }, []);
 
   const activeTabCounts = useMemo(() => {
     const todayStr = new Date().toDateString();
@@ -195,7 +190,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 bg-primary flex flex-col justify-center items-center p-6"
+            className="fixed inset-0 z-50 bg-primary flex flex-col justify-center items-center p-6"
           >
             <motion.div 
               animate={{ scale: [1, 1.1, 1] }}
@@ -226,7 +221,7 @@ export default function Dashboard() {
               )}
               <div className="flex justify-between items-center border-t border-border-subtle pt-4">
                 <span className="text-text-muted font-bold">Total Amount</span>
-                <span className="text-2xl font-bold text-primary">₹{Number(incomingOrder.total || 0).toFixed(2)}</span>
+                <span className="text-2xl font-bold text-primary">Γé╣{Number(incomingOrder.total || 0).toFixed(2)}</span>
               </div>
             </div>
 
@@ -249,13 +244,11 @@ export default function Dashboard() {
 
         {/* Order Details Modal (View Details) */}
         {activeOrderDetails && !incomingOrder && (
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 bg-black/50 flex flex-col justify-end"
-            onClick={() => setActiveOrderDetails(null)}
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed inset-0 z-40 bg-black/50 flex flex-col justify-end"
           >
             <div className="bg-white rounded-t-3xl w-full p-6 shadow-xl max-h-[85vh] overflow-y-auto pb-24">
               <div className="flex justify-between items-center mb-6">
@@ -327,7 +320,7 @@ export default function Dashboard() {
 
                 <div className="flex justify-between items-center p-4 bg-bg-alt rounded-xl border border-border-subtle">
                   <span className="text-text-muted font-bold">Total Amount</span>
-                  <span className="text-2xl font-bold text-primary">₹{Number(activeOrderDetails.total || 0).toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-primary">Γé╣{Number(activeOrderDetails.total || 0).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -367,8 +360,9 @@ export default function Dashboard() {
             }`}
           >
             <div 
-              className={`w-6 h-6 rounded-full bg-white shadow-md transform ${isInitializing ? '' : 'transition-transform duration-300'}`} 
-              style={{ transform: isAcceptingOrders ? "translateX(1.5rem)" : "translateX(0)", transitionDuration: isTransitionReady ? '300ms' : '0ms' }}
+              className={`w-6 h-6 rounded-full bg-white shadow-md transform ${isInitializing ? '' : 'transition-transform duration-300'} ${
+                isAcceptingOrders ? "translate-x-6" : "translate-x-0"
+              }`} 
             />
           </button>
         </div>
@@ -383,7 +377,7 @@ export default function Dashboard() {
         <Link href="/earnings" className="bg-bg-alt rounded-2xl p-4 shadow-sm border border-border-subtle hover:bg-gray-50 transition-colors block">
           <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Earnings</p>
           <p className="text-2xl font-heading font-bold text-green-600">
-            ₹{(stats.revenueToday || 0).toFixed(2)}
+            Γé╣{(stats.revenueToday || 0).toFixed(2)}
           </p>
         </Link>
       </div>
@@ -444,7 +438,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-text-primary text-lg">₹{Number(order.total || 0).toFixed(2)}</p>
+                  <p className="font-bold text-text-primary text-lg">Γé╣{Number(order.total || 0).toFixed(2)}</p>
                 </div>
               </div>
 

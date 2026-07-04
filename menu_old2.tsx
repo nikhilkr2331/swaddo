@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Check, X, Camera, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
@@ -258,7 +258,7 @@ export default function MenuPage() {
                         <h3 className="font-bold text-text-primary text-sm leading-tight mb-1 pr-2">{item.name}</h3>
                         
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-text-primary text-[13px]">₹{item.price}</span>
+                          <span className="font-bold text-text-primary text-[13px]">Γé╣{item.price}</span>
                           {item.discount_percentage && (
                              <span className="text-[10px] bg-blue-50 text-blue-600 font-bold px-1.5 py-0.5 rounded-sm">{item.discount_percentage}% OFF</span>
                           )}
@@ -338,7 +338,7 @@ export default function MenuPage() {
 
       {/* Add/Edit Item Modal Overlay */}
       {isAdding && (
-        <div className="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-md z-[100] flex justify-center items-end sm:items-center bg-black/60 p-0 sm:p-6 transition-opacity">
+        <div className="fixed inset-0 z-[100] flex justify-center items-end sm:items-center bg-black/60 p-0 sm:p-6 transition-opacity">
           <div className="bg-bg-alt w-full max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-full duration-300">
             
             {/* Modal Header */}
@@ -382,7 +382,7 @@ export default function MenuPage() {
                 
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label className="block text-xs font-bold text-text-muted mb-1.5">Base Price (₹) *</label>
+                    <label className="block text-xs font-bold text-text-muted mb-1.5">Base Price (Γé╣) *</label>
                     <input type="number" placeholder="e.g. 150" value={form.basePrice} onChange={e => setForm({...form, basePrice: e.target.value})} className="w-full border border-border-subtle p-3.5 rounded-xl text-sm outline-none focus:border-accent bg-white transition-colors" />
                   </div>
                   <div className="flex-1">
@@ -468,7 +468,7 @@ export default function MenuPage() {
                           {form.variants.map((v, i) => (
                             <div key={i} className="flex gap-2 items-center">
                               <input type="text" placeholder="Size (e.g. Half)" value={v.name} onChange={e => { const newV = [...form.variants]; newV[i].name = e.target.value; setForm({...form, variants: newV}); }} className="flex-1 border border-gray-200 p-2.5 rounded-lg text-sm outline-none focus:border-accent bg-white" />
-                              <input type="number" placeholder="Price (₹)" value={v.price} onChange={e => { const newV = [...form.variants]; newV[i].price = e.target.value; setForm({...form, variants: newV}); }} className="w-24 border border-gray-200 p-2.5 rounded-lg text-sm outline-none focus:border-accent bg-white" />
+                              <input type="number" placeholder="Price (Γé╣)" value={v.price} onChange={e => { const newV = [...form.variants]; newV[i].price = e.target.value; setForm({...form, variants: newV}); }} className="w-24 border border-gray-200 p-2.5 rounded-lg text-sm outline-none focus:border-accent bg-white" />
                               <button onClick={() => setForm({...form, variants: form.variants.filter((_, idx) => idx !== i)})} className="p-2 text-gray-400 hover:text-red-500 bg-white rounded-lg border border-gray-200"><X size={16} /></button>
                             </div>
                           ))}
@@ -491,7 +491,7 @@ export default function MenuPage() {
                           {form.addons.map((a, i) => (
                             <div key={i} className="flex gap-2 items-center">
                               <input type="text" placeholder="Add-on (e.g. Extra Cheese)" value={a.name} onChange={e => { const newA = [...form.addons]; newA[i].name = e.target.value; setForm({...form, addons: newA}); }} className="flex-1 border border-gray-200 p-2.5 rounded-lg text-sm outline-none focus:border-accent bg-white" />
-                              <input type="number" placeholder="+₹" value={a.price} onChange={e => { const newA = [...form.addons]; newA[i].price = e.target.value; setForm({...form, addons: newA}); }} className="w-20 border border-gray-200 p-2.5 rounded-lg text-sm outline-none focus:border-accent bg-white" />
+                              <input type="number" placeholder="+Γé╣" value={a.price} onChange={e => { const newA = [...form.addons]; newA[i].price = e.target.value; setForm({...form, addons: newA}); }} className="w-20 border border-gray-200 p-2.5 rounded-lg text-sm outline-none focus:border-accent bg-white" />
                               <button onClick={() => setForm({...form, addons: form.addons.filter((_, idx) => idx !== i)})} className="p-2 text-gray-400 hover:text-red-500 bg-white rounded-lg border border-gray-200"><X size={16} /></button>
                             </div>
                           ))}
@@ -515,7 +515,7 @@ export default function MenuPage() {
                             <input type="number" placeholder="% Off" value={form.discountPercentage} onChange={e => setForm({...form, discountPercentage: e.target.value})} className="w-full border border-gray-200 p-2.5 rounded-lg text-sm outline-none focus:border-accent mb-1.5 bg-white" />
                             {form.basePrice && form.discountPercentage && (
                               <p className="text-[10px] text-text-muted font-medium bg-green-50 text-green-700 px-2 py-1 rounded">
-                                Prev: <span className="line-through">₹{form.basePrice}</span> → <span className="font-bold">₹{Math.max(0, parseFloat(form.basePrice) * (1 - parseFloat(form.discountPercentage)/100)).toFixed(0)}</span>
+                                Prev: <span className="line-through">Γé╣{form.basePrice}</span> ΓåÆ <span className="font-bold">Γé╣{Math.max(0, parseFloat(form.basePrice) * (1 - parseFloat(form.discountPercentage)/100)).toFixed(0)}</span>
                               </p>
                             )}
                           </div>
