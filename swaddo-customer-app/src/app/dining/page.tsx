@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { MapPin, Search, Star, Users, Calendar, Clock, X, CheckCircle2 } from "lucide-react";
+import { MapPin, Search, Star, Users, Calendar, Clock, X, CheckCircle2, ChevronDown } from "lucide-react";
 import LocationSelector from "@/components/LocationSelector";
 import BottomNav from "@/components/BottomNav";
 
@@ -56,31 +56,66 @@ export default function DiningPage() {
     setBookingStep(1);
   };
 
+  const searchPlaceholderItems = useMemo(() => ["Fine Dining", "Cafe", "Family Restaurant", "Buffet", "Romantic Dinner"], []);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % searchPlaceholderItems.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [searchPlaceholderItems]);
+
   return (
     <div className="min-h-screen bg-bg-main pb-24 flex flex-col relative overflow-hidden app-scroll-container font-body">
       <div className="grayscale opacity-50 pointer-events-none select-none blur-[1px] flex-1">
-        {/* Header Area */}
-      <div className="bg-bg-main/90 backdrop-blur-xl px-4 pt-6 pb-5 xl:px-8 xl:pt-8 sticky top-0 z-[60] border-b border-border-subtle/50">
-        <div className="max-w-7xl mx-auto flex flex-col gap-5">
+      {/* Header Area */}
+      <div className="bg-primary px-4 pt-2 pb-2 xl:hidden sticky top-0 z-[60] shadow-md">
+        <div className="max-w-7xl mx-auto flex flex-col gap-2">
           {/* Top Row */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-black font-heading text-xl shadow-md">
-                S
+            <div className="flex items-center gap-2 flex-1">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-white p-0.5 shadow-sm">
+                <Image src="/icon.svg" alt="Logo" width={32} height={32} className="object-cover rounded-full" />
               </div>
-              <div className="w-px h-8 bg-gray-200"></div>
-              <LocationSelector isMobile={true} />
+              <LocationSelector customTrigger={(onClick) => (
+                <div className="flex flex-col flex-1 truncate cursor-pointer active:opacity-70 transition-opacity" onClick={onClick}>
+                   <div className="flex items-center gap-1">
+                      <MapPin size={13} className="text-white fill-white/20" />
+                      <span className="font-heading font-extrabold text-white text-sm tracking-tight leading-none">Dining</span>
+                      <ChevronDown size={13} className="text-white/80" />
+                   </div>
+                   <span className="text-[10px] text-white/90 font-medium truncate pr-4 leading-tight mt-0.5">
+                      Bihar Sharif, Bihar
+                   </span>
+                </div>
+              )} />
             </div>
           </div>
           
           {/* Search Bar */}
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={20} />
-            <input 
-              type="text" 
-              placeholder="Search for restaurants to dine out..." 
-              className="w-full bg-white border border-transparent focus:border-primary/30 focus:ring-4 focus:ring-primary/10 rounded-[16px] py-3.5 pl-12 pr-4 outline-none transition-all shadow-[0_2px_12px_rgba(0,0,0,0.04)] text-[14px] font-medium"
-            />
+          <div className="flex items-center gap-1.5">
+            <div className="relative group flex-1 bg-white rounded-[14px] shadow-inner h-[34px] cursor-text overflow-hidden">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <Search className="text-primary group-focus-within:text-primary-hover transition-colors" size={16} />
+              </div>
+              <div className="absolute inset-0 pl-9 pr-4 flex items-center pointer-events-none overflow-hidden">
+                <AnimatePresence mode="popLayout">
+                  <motion.div
+                    key={placeholderIndex}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="flex items-center whitespace-nowrap absolute"
+                  >
+                    <span className="text-[13px] font-medium text-gray-500">Search for &quot;</span>
+                    <span className="text-[13px] font-bold text-gray-700 ml-1">{searchPlaceholderItems[placeholderIndex]}</span>
+                    <span className="text-[13px] font-medium text-gray-500">&quot;...</span>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -164,14 +199,35 @@ export default function DiningPage() {
       </div>
 
       {/* Coming Soon Overlay */}
-      <div className="fixed inset-0 flex flex-col items-center justify-center z-[70] pointer-events-none pt-10">
-        <div className="bg-white/95 backdrop-blur-md px-10 py-8 rounded-[32px] shadow-2xl border border-gray-200 flex flex-col items-center text-center">
-           <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5 shadow-inner">
-             <span className="text-4xl">🍽️</span>
+      <div className="fixed inset-0 flex flex-col items-center justify-center z-[70] pointer-events-none pt-6 px-4">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
+          className="bg-white/70 backdrop-blur-3xl px-6 py-6 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/50 flex flex-col items-center text-center relative overflow-hidden max-w-[280px] w-full before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/40 before:to-transparent before:pointer-events-none"
+        >
+           <div className="absolute -top-16 -right-16 w-32 h-32 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+           <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-orange-400/20 rounded-full blur-3xl pointer-events-none"></div>
+           
+           <div className="w-16 h-16 bg-gradient-to-tr from-primary to-orange-400 rounded-[20px] rotate-3 shadow-xl flex items-center justify-center mb-5 relative z-10">
+             <div className="absolute inset-0 bg-white/20 rounded-[20px] backdrop-blur-sm -rotate-6 scale-105 -z-10"></div>
+             <span className="text-3xl drop-shadow-md">🥂</span>
            </div>
-           <h2 className="text-4xl font-heading font-black text-gray-800 mb-3 tracking-tight">Coming Soon</h2>
-           <p className="text-sm font-medium text-gray-500 max-w-[240px] leading-relaxed">We are bringing the best dining experiences to Bihar Sharif very soon.</p>
-        </div>
+           
+           <h2 className="text-2xl font-heading font-black text-gray-900 mb-2 tracking-tight relative z-10 leading-tight">
+             Coming <br/><span className="text-primary">Very Soon</span>
+           </h2>
+           
+           <p className="text-xs font-semibold text-gray-600 leading-relaxed mb-5 relative z-10 px-1">
+             We're bringing the best dining experiences to Bihar Sharif! Get ready to explore top restaurants and book tables easily.
+           </p>
+           
+           <div className="bg-black/5 rounded-xl p-3 w-full border border-black/5 relative z-10 flex flex-col gap-0.5 shadow-inner">
+             <span className="text-[9px] font-black uppercase tracking-widest text-primary mb-0.5">Stay tuned</span>
+             <span className="text-xs font-bold text-gray-800">Exclusive perks await</span>
+             <span className="text-[10px] font-semibold text-gray-500">Don't miss out on our launch!</span>
+           </div>
+        </motion.div>
       </div>
 
       <BottomNav />

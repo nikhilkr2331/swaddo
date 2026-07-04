@@ -3,12 +3,13 @@
 import { MapPin, ChevronDown, Bell, Search, Star, Clock, Mic, Percent, User, Heart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { io } from "socket.io-client";
 import LocationSelector from "@/components/LocationSelector";
+import { useLocation } from "@/context/LocationContext";
 import useSWR from "swr";
 import { StallCardShimmer } from "@/components/Shimmer";
 
@@ -97,13 +98,14 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState("Biryani");
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isVegMode, setIsVegMode] = useState(false);
+  const [pureVegRestaurantsOnly, setPureVegRestaurantsOnly] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [userLocation, setUserLocation] = useState({ lat: 25.611, lng: 85.130, ready: false });
+  const { currentLocation, latitude, longitude, isLocationLoading } = useLocation();
 
   // Setup SWR fetcher
   const fetcher = (url: string) => api.get(url).then(res => res.data);
   const { data: stallsData, mutate: mutateStalls, isLoading } = useSWR(
-    userLocation.ready ? `/stalls?lat=${userLocation.lat}&lng=${userLocation.lng}&vegOnly=${isVegMode}` : null,
+    latitude && longitude ? `/stalls?lat=${latitude}&lng=${longitude}&vegOnly=${pureVegRestaurantsOnly}` : null,
     fetcher,
     { revalidateOnFocus: false, keepPreviousData: true }
   );
@@ -112,6 +114,9 @@ export default function Home() {
     if (typeof window !== "undefined") {
       const favs = JSON.parse(localStorage.getItem("swaddo_favorites") || "[]");
       setFavorites(favs.map((f: any) => f.id));
+      
+      const savedPureVeg = localStorage.getItem("swaddo_veg_restaurants_only") === "true";
+      setPureVegRestaurantsOnly(savedPureVeg);
     }
   }, []);
 
@@ -151,27 +156,20 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    // Attempt to get user location for accurate distance, otherwise default
-    let lat = 25.611;
-    let lng = 85.130;
-    
-    if (typeof window !== 'undefined') {
-       const savedLoc = localStorage.getItem("swaddo_location");
-       if (savedLoc) {
-         try {
-           const parsed = JSON.parse(savedLoc);
-           if (parsed.lat && parsed.lng) {
-             lat = parsed.lat;
-             lng = parsed.lng;
-           }
-        } catch(e) {}
-      }
-      setIsVegMode(localStorage.getItem("swaddo_veg_restaurants_only") === "true");
-      setUserLocation({ lat, lng, ready: true });
+  const searchPlaceholderItems = useMemo(() => {
+    if (isVegMode) {
+      return ["Paneer Tikka", "Veg Pizza", "Chole Bhature", "Masala Dosa", "Veg Burger", "Sweets", "North Indian"];
     }
-  }, []);
+    return ["Biryani", "Pizza", "Burger", "Cake", "Chicken", "Rolls", "North Indian"];
+  }, [isVegMode]);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % searchPlaceholderItems.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [searchPlaceholderItems]);
   // Process stalls from SWR cache
   const stalls = useMemo(() => {
     return stallsData?.data ? stallsData.data.map((s: any) => {
@@ -236,46 +234,60 @@ export default function Home() {
     <div className="flex flex-col min-h-screen pb-24 bg-bg-main app-scroll-container">
       
       {/* Header Area (Mobile Only) */}
-      <div className="bg-white px-4 pt-4 pb-3 xl:hidden sticky top-0 z-[60]">
-        <div className="max-w-7xl mx-auto flex flex-col gap-4">
+      <div className="bg-primary px-4 pt-2 pb-2 xl:hidden sticky top-0 z-[60] shadow-md">
+        <div className="max-w-7xl mx-auto flex flex-col gap-2">
           
           {/* Top Row: Logo, Location & Bell */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5 flex-1">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 overflow-hidden">
-                <Image src="/icon.svg" alt="Logo" width={36} height={36} className="object-cover" />
+            <div className="flex items-center gap-2 flex-1">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-white p-0.5 shadow-sm">
+                <Image src="/icon.svg" alt="Logo" width={32} height={32} className="object-cover rounded-full" />
               </div>
-              <div className="flex flex-col flex-1 truncate">
-                 <div className="flex items-center gap-1">
-                    <MapPin size={14} className="text-primary fill-primary/20" />
-                    <span className="font-heading font-extrabold text-gray-900 text-sm tracking-tight">Home</span>
-                    <ChevronDown size={14} className="text-gray-500" />
-                 </div>
-                 <span className="text-[11px] text-gray-500 font-medium truncate pr-4">{formatAddress(userLocation.ready ? "Fetching..." : "Locating...")}</span>
-              </div>
+              <LocationSelector customTrigger={(onClick) => (
+                <div className="flex flex-col flex-1 truncate cursor-pointer active:opacity-70 transition-opacity" onClick={onClick}>
+                   <div className="flex items-center gap-1">
+                      <MapPin size={13} className="text-white fill-white/20" />
+                      <span className="font-heading font-extrabold text-white text-sm tracking-tight leading-none">Home</span>
+                      <ChevronDown size={13} className="text-white/80" />
+                   </div>
+                   <span className="text-[10px] text-white/90 font-medium truncate pr-4 leading-tight mt-0.5">
+                      {formatAddress(currentLocation || (isLocationLoading ? "Fetching location..." : "Location not set"))}
+                   </span>
+                </div>
+              )} />
             </div>
             
-            <button onClick={() => router.push("/profile")} className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-700 relative hover:bg-gray-50 transition-colors bg-white shadow-sm shrink-0">
-              <Bell size={18} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white"></span>
+            <button onClick={() => router.push("/profile")} className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white relative hover:bg-white/10 transition-colors bg-black/10 shadow-sm shrink-0">
+              <Bell size={15} />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-yellow-400 rounded-full border border-primary"></span>
             </button>
           </div>
 
           {/* Search Bar & Veg Toggle */}
-          <div className="flex items-center gap-3 mt-1">
-            <div className="relative group flex-1">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="text-primary group-focus-within:text-primary-hover transition-colors" size={20} />
+          <div className="flex items-center gap-1.5">
+            <div className="relative group flex-1 bg-white rounded-[14px] shadow-inner h-[34px] cursor-text overflow-hidden" onClick={() => router.push("/search")}>
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <Search className="text-primary group-focus-within:text-primary-hover transition-colors" size={16} />
               </div>
-              <input 
-                type="text" 
-                placeholder="Restaurant name or a dish..." 
-                onClick={() => router.push("/search")}
-                className="w-full bg-gray-100 border-none rounded-2xl py-3 pl-12 pr-12 text-[14px] font-medium outline-none focus:bg-white focus:ring-1 focus:ring-primary/20 focus:shadow-native transition-all shadow-inner"
-              />
-              <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
-                 <button onClick={() => router.push("/search")} className="p-1.5 text-primary rounded-lg transition-colors">
-                   <Mic size={20} />
+              <div className="absolute inset-0 pl-9 pr-9 flex items-center pointer-events-none overflow-hidden">
+                <AnimatePresence mode="popLayout">
+                  <motion.div
+                    key={placeholderIndex}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="flex items-center whitespace-nowrap absolute"
+                  >
+                    <span className="text-[13px] font-medium text-gray-500">Search for &quot;</span>
+                    <span className="text-[13px] font-bold text-gray-700 ml-1">{searchPlaceholderItems[placeholderIndex]}</span>
+                    <span className="text-[13px] font-medium text-gray-500">&quot;...</span>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              <div className="absolute inset-y-0 right-0 pr-1 flex items-center z-10">
+                 <button onClick={(e) => { e.stopPropagation(); router.push("/search"); }} className="p-1.5 text-primary rounded-lg transition-colors">
+                   <Mic size={16} />
                  </button>
               </div>
             </div>
@@ -283,11 +295,11 @@ export default function Home() {
             {/* Veg Toggle Filter */}
             <div 
                onClick={(e) => { e.stopPropagation(); toggleVegMode(); }}
-               className="flex items-center gap-1 px-2.5 h-[32px] rounded-full border border-gray-100 bg-white cursor-pointer group shadow-sm transition-all shrink-0"
+               className="flex items-center gap-1 px-2 h-[34px] rounded-[14px] border border-white/20 bg-black/10 cursor-pointer group shadow-sm transition-all shrink-0"
              >
-               <span className={`text-[10px] font-black tracking-wider transition-colors ${isVegMode ? 'text-green-600' : 'text-gray-600'}`}>VEG</span>
-               <div className={`w-6 h-3.5 rounded-full p-0.5 flex items-center transition-colors ${isVegMode ? 'bg-green-600' : 'bg-gray-200'}`}>
-                 <div className={`w-2.5 h-2.5 bg-white rounded-full shadow-sm transform transition-transform ${isVegMode ? 'translate-x-2.5' : 'translate-x-0'}`}></div>
+               <span className={`text-[9px] font-black tracking-wider transition-colors ${isVegMode ? 'text-green-400' : 'text-white'}`}>VEG</span>
+               <div className={`w-5 h-3 rounded-full p-0.5 flex items-center transition-colors ${isVegMode ? 'bg-green-500' : 'bg-white/30'}`}>
+                 <div className={`w-2 h-2 bg-white rounded-full shadow-sm transform transition-transform ${isVegMode ? 'translate-x-2' : 'translate-x-0'}`}></div>
                </div>
              </div>
           </div>
@@ -297,7 +309,7 @@ export default function Home() {
       <div className="px-4 xl:px-8 max-w-7xl mx-auto w-full mt-4">
 
         {/* Auto-sliding Banner Carousel */}
-        <div className="w-[calc(100%+16px)] -mx-2 relative overflow-hidden rounded-[24px] shadow-sm mb-3" style={{ height: '240px' }}>
+        <div className="w-[calc(100%+16px)] -mx-2 relative overflow-hidden rounded-[24px] shadow-sm" style={{ height: '240px' }}>
           <div 
             className="flex transition-transform duration-500 ease-in-out h-full" 
             style={{ transform: `translateX(-${currentBannerIndex * 100}%)` }}
@@ -355,10 +367,10 @@ export default function Home() {
         </div>
 
         {/* Sticky Section for Categories and Restaurants Header */}
-        <div className="sticky top-[132px] sm:top-[75px] z-[50] bg-[#f8f9fa] -mx-4 px-4 xl:-mx-8 xl:px-8 pb-3 mb-4">
+        <div className="sticky top-[90px] sm:top-[75px] z-[50] bg-bg-main -mx-4 px-4 xl:-mx-8 xl:px-8 pb-3 mb-4">
           
           {/* Categories: "What's on your mind?" */}
-          <div className="pt-3 pb-2 border-b border-gray-100/50">
+          <div className="pt-2 pb-2 border-b border-gray-100/50">
             <div className="flex flex-col mb-3">
                <h2 className="text-[20px] font-heading font-black text-gray-900 tracking-tight leading-none">Craving something? 🤤</h2>
                <span className="text-[#e23744] text-[10px] font-bold tracking-widest uppercase mt-1">Pick a category to explore</span>

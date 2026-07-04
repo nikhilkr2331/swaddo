@@ -25,13 +25,8 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [liveLongitude, setLiveLongitude] = useState<number | null>(null);
   const [hasSetLocation, setHasSetLocation] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(true);
-  const [isSlow, setIsSlow] = useState(false);
 
   useEffect(() => {
-    // Show slow network warning if it takes too long
-    const timeoutId = setTimeout(() => {
-      setIsSlow(true);
-    }, 3000);
 
     // Try to load from localStorage first
     const savedLoc = localStorage.getItem("swaddo_location");
@@ -39,26 +34,20 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
     const savedLng = localStorage.getItem("swaddo_lng");
     const savedLiveLat = localStorage.getItem("swaddo_live_lat");
     const savedLiveLng = localStorage.getItem("swaddo_live_lng");
-    const locationType = localStorage.getItem("swaddo_location_type");
     
     if (savedLiveLat) setLiveLatitude(parseFloat(savedLiveLat));
     if (savedLiveLng) setLiveLongitude(parseFloat(savedLiveLng));
 
-    if (savedLoc) {
+    if (savedLoc && savedLat && savedLng) {
       setCurrentLocation(savedLoc);
       setHasSetLocation(true);
-      if (savedLat) setLatitude(parseFloat(savedLat));
-      if (savedLng) setLongitude(parseFloat(savedLng));
-      
-      // If user manually chose a location, DO NOT overwrite with live GPS!
-      if (locationType === "manual") {
-         setIsLocationLoading(false);
-         clearTimeout(timeoutId);
-         return;
-      }
+      setLatitude(parseFloat(savedLat));
+      setLongitude(parseFloat(savedLng));
+      setIsLocationLoading(false);
+      return;
     }
 
-    // Otherwise, auto-fetch live GPS (this fulfills the automatic relocation request)
+    // Otherwise, auto-fetch live GPS
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -98,23 +87,18 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
             if (!savedLoc) setCurrentLocation("");
           } finally {
             setIsLocationLoading(false);
-            clearTimeout(timeoutId);
           }
         },
         (error) => {
           console.error("Geolocation error", error);
           if (!savedLoc) setCurrentLocation("");
           setIsLocationLoading(false);
-          clearTimeout(timeoutId);
         }
       );
     } else {
       if (!savedLoc) setCurrentLocation("");
       setIsLocationLoading(false);
-      clearTimeout(timeoutId);
     }
-    
-    return () => clearTimeout(timeoutId);
   }, []);
 
   const setCoordinates = (lat: number, lng: number, saveToStorage = true) => {
@@ -186,17 +170,6 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <LocationContext.Provider value={{ currentLocation, setCurrentLocation: handleSetLocation, latitude, longitude, setCoordinates, hasSetLocation, isLocationLoading, resetToLiveLocation, liveLatitude, liveLongitude }}>
-      {isLocationLoading && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center pointer-events-auto">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-text-primary font-bold text-lg">Fetching accurate location...</p>
-          {isSlow && (
-            <p className="text-red-500 font-bold mt-2 bg-red-50 px-4 py-2 rounded-lg border border-red-200">
-              Slow network connection...
-            </p>
-          )}
-        </div>
-      )}
       {children}
     </LocationContext.Provider>
   );

@@ -5,7 +5,7 @@ import { useLocation } from "@/context/LocationContext";
 import { ChevronDown, MapPin, Search, X, Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function LocationSelector({ isMobile = false }: { isMobile?: boolean }) {
+export default function LocationSelector({ isMobile = false, customTrigger }: { isMobile?: boolean, customTrigger?: (onClick: () => void) => React.ReactNode }) {
   const { currentLocation, setCurrentLocation, setCoordinates, hasSetLocation } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -118,7 +118,9 @@ export default function LocationSelector({ isMobile = false }: { isMobile?: bool
   return (
     <>
       {/* Trigger Button */}
-      {isMobile ? (
+      {customTrigger ? (
+        customTrigger(() => setIsOpen(true))
+      ) : isMobile ? (
         <div className="flex flex-col justify-center cursor-pointer" onClick={() => setIsOpen(true)}>
           <span className="text-[9px] text-text-muted font-bold uppercase tracking-wider leading-none mb-1">Delivering to</span>
           <div className="flex items-center gap-1 font-heading font-bold text-sm leading-none text-text-primary whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
