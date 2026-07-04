@@ -236,7 +236,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen pb-24 bg-bg-main app-scroll-container">
       
       {/* Header Area (Mobile Only) */}
-      <div className="bg-white/90 backdrop-blur-md px-4 pt-4 pb-3 shadow-sm xl:hidden sticky top-0 z-[60] border-b border-gray-100">
+      <div className="bg-white px-4 pt-4 pb-3 xl:hidden sticky top-0 z-[60]">
         <div className="max-w-7xl mx-auto flex flex-col gap-4">
           
           {/* Top Row: Logo, Location & Bell */}
@@ -355,7 +355,7 @@ export default function Home() {
         </div>
 
         {/* Sticky Section for Categories and Restaurants Header */}
-        <div className="sticky top-[132px] sm:top-[75px] z-[50] bg-[#f8f9fa]/95 backdrop-blur-md -mx-4 px-4 xl:-mx-8 xl:px-8 pb-3 mb-4 shadow-[0_4px_15px_-10px_rgba(0,0,0,0.1)]">
+        <div className="sticky top-[132px] sm:top-[75px] z-[50] bg-[#f8f9fa] -mx-4 px-4 xl:-mx-8 xl:px-8 pb-3 mb-4">
           
           {/* Categories: "What's on your mind?" */}
           <div className="pt-3 pb-2 border-b border-gray-100/50">
