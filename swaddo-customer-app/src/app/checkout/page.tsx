@@ -331,6 +331,7 @@ export default function Checkout() {
   }, []);
 
   const [stallCoords, setStallCoords] = useState<{lat: number, lng: number} | null>(null);
+  const [stallInfo, setStallInfo] = useState<any>(null);
   const [deliveryFee, setDeliveryFee] = useState(20); 
 
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -347,8 +348,11 @@ export default function Checkout() {
   useEffect(() => {
     if (cart.stallId) {
       api.get(`/stalls/${cart.stallId}`).then(res => {
-        if (res.data && res.data.latitude && res.data.longitude) {
-          setStallCoords({ lat: parseFloat(res.data.latitude), lng: parseFloat(res.data.longitude) });
+        if (res.data) {
+          setStallInfo(res.data);
+          if (res.data.latitude && res.data.longitude) {
+            setStallCoords({ lat: parseFloat(res.data.latitude), lng: parseFloat(res.data.longitude) });
+          }
         }
       }).catch(console.error);
     }
@@ -375,7 +379,20 @@ export default function Checkout() {
   }, [stallCoords, mapLat, mapLng]);
 
   const taxAndFees = Math.round(cartTotal * 0.05);
-  const finalTotal = cartTotal + taxAndFees + deliveryFee;
+  
+  // Offer Logic Calculation
+  let discountAmount = 0;
+  if (stallInfo?.active_offer_is_active && stallInfo?.active_offer_discount) {
+    const minOrder = parseFloat(stallInfo.active_offer_min) || 0;
+    const maxDiscount = parseFloat(stallInfo.active_offer_max) || Infinity;
+    const discountPct = parseFloat(stallInfo.active_offer_discount);
+    if (cartTotal >= minOrder) {
+      discountAmount = Math.min((cartTotal * discountPct) / 100, maxDiscount);
+      discountAmount = Math.round(discountAmount);
+    }
+  }
+
+  const finalTotal = cartTotal - discountAmount + taxAndFees + deliveryFee;
 
   const handlePlaceOrder = async () => {
     if (!cart.stallId || cart.items.length === 0) return;
@@ -681,6 +698,12 @@ export default function Checkout() {
                 <span>Item Total</span>
                 <span>₹{cartTotal}</span>
               </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-green-600 font-bold">
+                  <span>Offer Discount</span>
+                  <span>-₹{discountAmount}</span>
+                </div>
+              )}
               <div className="flex justify-between text-text-muted">
                 <span>Taxes & Fees</span>
                 <span>₹{taxAndFees}</span>

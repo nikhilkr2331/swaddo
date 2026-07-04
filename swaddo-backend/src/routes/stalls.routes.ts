@@ -204,6 +204,35 @@ router.put('/merchant/profile', authenticate, requireVendor, async (req: AuthReq
   }
 });
 
+// Update Merchant Offer (Vendor Only)
+router.put('/merchant/offer', authenticate, requireVendor, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+    const { title, discountPercentage, minOrderValue, maxDiscount, isActive } = req.body;
+
+    const vendorRes = await pool.query('SELECT id FROM vendors WHERE user_id = $1 LIMIT 1', [userId]);
+    if (vendorRes.rows.length === 0) return res.status(404).json({ message: 'Vendor not found' });
+    const vendorId = vendorRes.rows[0].id;
+
+    const stallRes = await pool.query(
+      `UPDATE stalls 
+       SET active_offer_title = COALESCE($1, active_offer_title),
+           active_offer_discount = COALESCE($2, active_offer_discount),
+           active_offer_min = COALESCE($3, active_offer_min),
+           active_offer_max = COALESCE($4, active_offer_max),
+           active_offer_is_active = COALESCE($5, active_offer_is_active)
+       WHERE vendor_id = $6 RETURNING *`,
+      [title, discountPercentage, minOrderValue, maxDiscount, isActive, vendorId]
+    );
+
+    if (stallRes.rows.length === 0) return res.status(404).json({ message: 'Stall not found' });
+    res.json(stallRes.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 // Merchant Payouts (Vendor Only)
 router.get('/merchant/payouts', authenticate, requireVendor, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -348,7 +377,12 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       closingTime: stall.closing_time,
       tags: stall.tags,
       prepTime: stall.prep_time,
-      isPureVeg: stall.is_pure_veg
+      isPureVeg: stall.is_pure_veg,
+      activeOfferTitle: stall.active_offer_title,
+      activeOfferDiscount: stall.active_offer_discount,
+      activeOfferMin: stall.active_offer_min,
+      activeOfferMax: stall.active_offer_max,
+      activeOfferIsActive: stall.active_offer_is_active
     });
   } catch (err) {
     next(err);

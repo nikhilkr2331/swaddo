@@ -462,13 +462,13 @@ export default function Home() {
                       </div>
 
                       {/* Offer Text (Zomato/Swiggy style huge text at bottom of image) */}
-                      {stall.offer && (
+                      {stall.active_offer_is_active && stall.active_offer_title && (
                         <div className="absolute bottom-2 left-3 text-white">
                           <span className="font-heading font-black text-[22px] tracking-tight leading-none text-white/95">
-                            {stall.offer.split(' ').slice(0, 2).join(' ')}
+                            {stall.active_offer_title.split(' ').slice(0, 2).join(' ')}
                           </span>
                           <span className="block font-bold text-xs text-white/80 uppercase tracking-widest mt-0.5">
-                            {stall.offer.split(' ').slice(2).join(' ')}
+                            {stall.active_offer_title.split(' ').slice(2).join(' ')}
                           </span>
                         </div>
                       )}

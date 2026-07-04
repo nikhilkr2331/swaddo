@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense, useMemo } from "react";
 import useSWR from "swr";
 import { StallCardShimmer, MenuItemShimmer } from "@/components/Shimmer";
-import { ArrowLeft, Share2, Star, Clock, MapPin, Plus, Minus, ShoppingBag, Loader2, Heart } from "lucide-react";
+import { ArrowLeft, Share2, Star, Clock, MapPin, Plus, Minus, ShoppingBag, Loader2, Heart, Tag } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -301,6 +301,27 @@ function StallDetailContent() {
             </div>
           </div>
         </div>
+
+        {/* Offer Banner */}
+        {stallData.active_offer_is_active && stallData.active_offer_title && (
+          <div className="px-4 sm:px-6 xl:px-0 mb-6">
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 border border-blue-200 rounded-2xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-600 text-white rounded-full p-2">
+                  <Tag size={20} />
+                </div>
+                <div>
+                  <h3 className="font-heading font-black text-blue-900 leading-tight">
+                    {stallData.active_offer_title}
+                  </h3>
+                  <p className="text-xs text-blue-800/80 font-medium mt-0.5">
+                    Use code <span className="font-bold uppercase">SWADDO</span> at checkout
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Category Chips (Sticky) */}
         <div className="sticky top-0 z-30 bg-gray-50 pt-2 pb-3 px-4 sm:px-6 xl:px-0">

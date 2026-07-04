@@ -5,6 +5,8 @@ import SplashScreen from "@/components/SplashScreen";
 import PWARegister from "@/components/PWARegister";
 import SWRProvider from "@/components/SWRProvider";
 
+import PageTransitionWrapper from "@/components/PageTransitionWrapper";
+
 export const metadata: Metadata = {
   title: "Swaddo Merchant App",
   description: "Manage stall orders and menu.",
@@ -27,7 +29,9 @@ export default function RootLayout({
         <SWRProvider>
           <SplashScreen />
           <main className="pb-20">
-            {children}
+            <PageTransitionWrapper>
+              {children}
+            </PageTransitionWrapper>
           </main>
           <PWARegister />
           <BottomNav />

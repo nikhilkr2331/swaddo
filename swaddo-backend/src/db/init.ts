@@ -66,6 +66,11 @@ const runSchema = async () => {
         closing_time VARCHAR(10) DEFAULT '10:00 PM',
         is_open BOOLEAN DEFAULT true,
         rating DECIMAL(3,2) DEFAULT 0.00,
+        active_offer_title VARCHAR(150),
+        active_offer_discount DECIMAL(5,2),
+        active_offer_min DECIMAL(10,2),
+        active_offer_max DECIMAL(10,2),
+        active_offer_is_active BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -77,6 +82,21 @@ const runSchema = async () => {
       EXCEPTION WHEN duplicate_column THEN null; END $$;
       DO $$ BEGIN
         ALTER TABLE stalls ADD COLUMN longitude DECIMAL(11,8) DEFAULT 85.13000000;
+      EXCEPTION WHEN duplicate_column THEN null; END $$;
+      DO $$ BEGIN
+        ALTER TABLE stalls ADD COLUMN active_offer_title VARCHAR(150);
+      EXCEPTION WHEN duplicate_column THEN null; END $$;
+      DO $$ BEGIN
+        ALTER TABLE stalls ADD COLUMN active_offer_discount DECIMAL(5,2);
+      EXCEPTION WHEN duplicate_column THEN null; END $$;
+      DO $$ BEGIN
+        ALTER TABLE stalls ADD COLUMN active_offer_min DECIMAL(10,2);
+      EXCEPTION WHEN duplicate_column THEN null; END $$;
+      DO $$ BEGIN
+        ALTER TABLE stalls ADD COLUMN active_offer_max DECIMAL(10,2);
+      EXCEPTION WHEN duplicate_column THEN null; END $$;
+      DO $$ BEGIN
+        ALTER TABLE stalls ADD COLUMN active_offer_is_active BOOLEAN DEFAULT false;
       EXCEPTION WHEN duplicate_column THEN null; END $$;
     `);
     
