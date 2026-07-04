@@ -90,6 +90,23 @@ export default function Checkout() {
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [restaurantInstructions, setRestaurantInstructions] = useState("");
   
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("swaddo_saved_addresses");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setSavedAddresses(parsed);
+            setSelectedAddressId(parsed[0].id); // Auto-select the first saved address
+          }
+        } catch (e) {
+          console.error("Failed to parse saved addresses", e);
+        }
+      }
+    }
+  }, []);
+  
   // Map Modal State
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [mapLat, setMapLat] = useState(latitude || 25.611);
