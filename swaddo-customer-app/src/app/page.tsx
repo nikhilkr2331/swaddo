@@ -4,7 +4,7 @@ import { MapPin, ChevronDown, Bell, Search, Star, Clock, Mic, Percent, User, Hea
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { io } from "socket.io-client";
