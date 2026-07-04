@@ -600,7 +600,7 @@ function OrderTrackingContent() {
           stallLoc={orderStatus.stallLocation}
           stageIndex={orderStatus.stageIndex}
           riderAssigned={!!orderStatus.rider}
-          onDistanceUpdate={(dist, eta) => {
+          onDistanceUpdate={(dist: any, eta: any) => {
             setRouteDistance(dist);
             setOrderStatus((prev: any) => ({ ...prev, eta: prev.stageIndex >= 2 ? (eta || prev.eta) : prev.eta }));
           }}

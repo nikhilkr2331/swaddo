@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
+import useSWR from "swr";
 import { ArrowLeft, Share2, Star, Clock, MapPin, Plus, Minus, ShoppingBag, Loader2, Heart } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -29,11 +30,30 @@ function StallDetailContent() {
   const searchParams = useSearchParams();
   const stallId = searchParams.get('id');
   
-  const [stallData, setStallData] = useState<any>(null);
   const [activeCategory, setActiveCategory] = useState("All");
-  const [items, setItems] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [itemMarkup, setItemMarkup] = useState(0);
+
+  const fetcher = (url: string) => api.get(url).then(res => res.data);
+  const { data: stallRes, isLoading: stallLoading, mutate: mutateStall } = useSWR(stallId ? `/stalls/${stallId}` : null, fetcher, { revalidateOnFocus: false, dedupingInterval: 60000 });
+  const { data: menuRes, isLoading: menuLoading, mutate: mutateMenu } = useSWR(stallId ? `/stalls/${stallId}/menu` : null, fetcher, { revalidateOnFocus: false, dedupingInterval: 60000 });
+  
+  const stallData = stallRes?.data || stallRes;
+  const rawMenuData = menuRes?.data || menuRes || [];
+  const isLoading = (!stallData && stallLoading) || (!rawMenuData.length && menuLoading);
+
+  const items = useMemo(() => {
+    if (!Array.isArray(rawMenuData)) return [];
+    return rawMenuData.map((item) => ({
+      id: item.id?.toString(),
+      name: item.name,
+      description: item.description || "",
+      price: Number(item.price), 
+      isVeg: item.is_veg ?? true,
+      isSoldOut: item.is_available === false,
+      category: (item.category && item.category.trim().toLowerCase() !== "all") ? item.category : "Others",
+      image: item.image_url || `https://source.unsplash.com/400x300/?food,${item.name.split(' ')[0]}`
+    }));
+  }, [rawMenuData]);
   const [isFavorite, setIsFavorite] = useState(false);
   const [itemFavorites, setItemFavorites] = useState<string[]>([]);
   const [isVegMode, setIsVegMode] = useState(false);
@@ -98,181 +118,95 @@ function StallDetailContent() {
   
   const { cart, updateQuantity, cartItemCount, cartTotal } = useCart();
 
+  // Calculate markup distance
   useEffect(() => {
-    if (!stallId) return;
-
+    if (!stallData) return;
     let active = true;
-
-    const fetchData = async () => {
-      try {
-        const stallPromise = api.get(`/stalls/${stallId}`);
-        const menuPromise = api.get(`/stalls/${stallId}/menu`);
-        
-        const stallRes = await stallPromise;
-        const stall = stallRes.data;
-        if (active) {
-          setStallData(stall);
-          setIsLoading(false); 
-        }
-        
-        let currentItemMarkup = 0;
-        
-        if (stall?.latitude && stall?.longitude) {
-          try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
-            
-            let browsingDistanceKm = 0;
-            if (latitude && longitude) {
-               const routeRes = await fetch(`${baseUrl}/location/route`, {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({
-                   originLat: parseFloat(stall.latitude),
-                   originLng: parseFloat(stall.longitude),
-                   destLat: latitude,
-                   destLng: longitude
-                 })
-               });
-               const data = await routeRes.json();
-               if (data.status === 'success' && data.data) {
-                 browsingDistanceKm = data.data.distanceKm;
-               }
-            }
-            
-            let physicalDistanceKm = 0;
-            if (liveLatitude && liveLongitude) {
-               const liveRouteRes = await fetch(`${baseUrl}/location/route`, {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({
-                   originLat: parseFloat(stall.latitude),
-                   originLng: parseFloat(stall.longitude),
-                   destLat: liveLatitude,
-                   destLng: liveLongitude
-                 })
-               });
-               const liveData = await liveRouteRes.json();
-               if (liveData.status === 'success' && liveData.data) {
-                 physicalDistanceKm = liveData.data.distanceKm;
-               }
-            }
-            
-            if (active) {
-              if (browsingDistanceKm >= 4.0 || physicalDistanceKm >= 4.0) {
-                currentItemMarkup = 20;
-              }
-            }
-          } catch (e) {
-            console.error("Failed to fetch road distance:", e);
-            if (active) {
-              let browsingDist = 0;
-              if (latitude && longitude) {
-                 browsingDist = getDistance(parseFloat(stall.latitude), parseFloat(stall.longitude), latitude, longitude);
-              }
-              let physicalDist = 0;
-              if (liveLatitude && liveLongitude) {
-                 physicalDist = getDistance(parseFloat(stall.latitude), parseFloat(stall.longitude), liveLatitude, liveLongitude);
-              }
-              
-              if (browsingDist >= 3.2 || physicalDist >= 3.2) {
-                 currentItemMarkup = 20;
-              }
-            }
+    const calculateMarkup = async () => {
+      let currentItemMarkup = 0;
+      if (stallData?.latitude && stallData?.longitude) {
+        try {
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
+          let browsingDistanceKm = 0;
+          if (latitude && longitude) {
+             const routeRes = await fetch(`${baseUrl}/location/route`, {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ originLat: parseFloat(stallData.latitude), originLng: parseFloat(stallData.longitude), destLat: latitude, destLng: longitude })
+             });
+             const data = await routeRes.json();
+             if (data.status === 'success' && data.data) browsingDistanceKm = data.data.distanceKm;
+          }
+          let physicalDistanceKm = 0;
+          if (liveLatitude && liveLongitude) {
+             const liveRouteRes = await fetch(`${baseUrl}/location/route`, {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ originLat: parseFloat(stallData.latitude), originLng: parseFloat(stallData.longitude), destLat: liveLatitude, destLng: liveLongitude })
+             });
+             const liveData = await liveRouteRes.json();
+             if (liveData.status === 'success' && liveData.data) physicalDistanceKm = liveData.data.distanceKm;
+          }
+          if (active && (browsingDistanceKm >= 4.0 || physicalDistanceKm >= 4.0)) currentItemMarkup = 20;
+        } catch (e) {
+          if (active) {
+            let browsingDist = (latitude && longitude) ? getDistance(parseFloat(stallData.latitude), parseFloat(stallData.longitude), latitude, longitude) : 0;
+            let physicalDist = (liveLatitude && liveLongitude) ? getDistance(parseFloat(stallData.latitude), parseFloat(stallData.longitude), liveLatitude, liveLongitude) : 0;
+            if (browsingDist >= 3.2 || physicalDist >= 3.2) currentItemMarkup = 20;
           }
         }
-        
-        if (active) setItemMarkup(currentItemMarkup);
-
-        const menuRes = await menuPromise;
-        const menuData = menuRes.data;
-        const mappedItems = menuData.map((item: any) => ({
-            id: item.id.toString(),
-            name: item.name,
-            description: item.description || "",
-            price: Number(item.price), 
-            isVeg: item.is_veg ?? true,
-            isSoldOut: item.is_available === false,
-            category: (item.category && item.category.trim().toLowerCase() !== "all") ? item.category : "Others",
-            image: item.image_url || `https://source.unsplash.com/400x300/?food,${item.name.split(' ')[0]}`
-        }));
-        
-        if (active) {
-          setItems(mappedItems);
-        }
-      } catch (err) {
-        console.error("Failed to fetch stall data", err);
-        if (active) setIsLoading(false);
       }
+      if (active) setItemMarkup(currentItemMarkup);
     };
+    calculateMarkup();
+    return () => { active = false; };
+  }, [stallData, latitude, longitude, liveLatitude, liveLongitude]);
 
-    fetchData();
-
-    let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket", "polling"], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
-    const channel = `stall:${stallId}:menu`;
+  // Socket IO real-time updates
+  useEffect(() => {
+    if (!stallId) return;
+    let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); 
+    const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket", "polling"], reconnection: true });
     
-    socket.on("connect", () => {
-      socket.emit("join_room", channel);
-    });
+    const channel = `stall:${stallId}:menu`;
+    socket.on("connect", () => socket.emit("join_room", channel));
     
     socket.on(channel, (payload) => {
       const { type, item } = payload;
-      
-      setItems((prev) => {
+      mutateMenu((current: any) => {
+        if (!current) return current;
+        let menuArr = current.data || current;
+        if (!Array.isArray(menuArr)) menuArr = [];
+        
+        let newArr = [...menuArr];
         switch (type) {
           case "item_added":
-            const newItem = {
-              id: item.id.toString(),
-              name: item.name,
-              description: item.description || "",
-              price: Number(item.price), 
-              isVeg: item.is_veg ?? true,
-              isSoldOut: item.is_available === false,
-              category: (item.category && item.category.trim().toLowerCase() !== "all") ? item.category : "Others",
-              image: item.image_url || `https://source.unsplash.com/400x300/?food,${item.name.split(' ')[0]}`
-            };
-            return [newItem, ...prev];
-            
+            newArr.unshift(item);
+            break;
           case "item_updated":
-            return prev.map(p => p.id === item.id.toString() ? {
-              ...p,
-              name: item.name,
-              description: item.description || p.description,
-              price: Number(item.price), 
-              isVeg: item.is_veg ?? p.isVeg,
-              category: (item.category && item.category.trim().toLowerCase() !== "all") ? item.category : (p.category && p.category.trim().toLowerCase() !== "all" ? p.category : "Others")
-            } : p);
-            
           case "stock_changed":
-            return prev.map(p => p.id === item.id.toString() ? { ...p, isSoldOut: item.is_available === false } : p);
-            
+            newArr = newArr.map(p => p.id?.toString() === item.id?.toString() ? { ...p, ...item } : p);
+            break;
           case "item_deleted":
-            return prev.filter(p => p.id !== item.id.toString());
-            
-          default:
-            return prev;
+            newArr = newArr.filter(p => p.id?.toString() !== item.id?.toString());
+            break;
         }
-      });
+        return { ...current, data: newArr };
+      }, false);
     });
 
     socket.on("stall_update", (updatedStall) => {
-      if (updatedStall.id.toString() === stallId) {
-        setStallData((prev: any) => ({
-          ...prev,
-          isOpen: updatedStall.is_open,
-          openingTime: updatedStall.opening_time,
-          closingTime: updatedStall.closing_time,
-          image: updatedStall.cover_image || prev?.image,
-          name: updatedStall.name,
-          address: updatedStall.location || prev?.address
-        }));
+      if (updatedStall.id?.toString() === stallId) {
+        mutateStall((current: any) => {
+          if (!current) return current;
+          const currentStall = current.data || current;
+          return { ...current, data: { ...currentStall, ...updatedStall } };
+        }, false);
       }
     });
 
-    return () => {
-      active = false;
-      socket.disconnect();
-    };
-  }, [stallId, latitude, longitude]);
+    return () => { socket.disconnect(); };
+  }, [stallId, mutateMenu, mutateStall]);
 
   const handleUpdateCartLocal = (item: any, delta: number) => {
     updateQuantity(stallId as string, stallData.name, { id: item.id.toString(), name: item.name, price: Number(item.price), markup: itemMarkup, isVeg: item.isVeg ?? true }, delta);

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import useSWR from "swr";
 import { ArrowLeft, Clock, Star, CheckCircle2, XCircle, Loader2, ChevronRight, MapPin, RefreshCw, Route, ThumbsUp, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -36,8 +37,36 @@ export default function Orders() {
   useAuth();
   const router = useRouter();
   const { clearCart, updateQuantity } = useCart();
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const fetcher = (url: string) => api.get(url).then(res => res.data);
+  const { data: ordersRes, isLoading, mutate: mutateOrders } = useSWR('/orders', fetcher, { revalidateOnFocus: false, dedupingInterval: 60000 });
+  
+  const rawOrders = ordersRes?.data || [];
+  
+  const orders = useMemo(() => {
+    if (!Array.isArray(rawOrders)) return [];
+    return rawOrders.map((o) => {
+      const itemsArray = (o.items || "1x Order Item").split(',').map((i: any) => {
+        const parts = i.trim().split('x ');
+        return { qty: parseInt(parts[0]) || 1, name: parts[1] || parts[0] };
+      });
+
+      return {
+        id: o.id,
+        stall: o.stall_name || o.stall || "Stall",
+        date: `${o.date}, ${o.time}`,
+        items: itemsArray,
+        summary: o.items_summary || o.items || "Order Items",
+        total: o.total,
+        status: o.status,
+        location: o.stall_location || "Gondia City, Maharashtra",
+        ratingData: {
+          app: { score: 0, timestamp: null },
+          restaurant: { score: 0, timestamp: null },
+          rider: { score: 0, timestamp: null }
+        }
+      };
+    });
+  }, [rawOrders]);
 
   // Rating Modal States
   const [orderToRate, setOrderToRate] = useState<any | null>(null);
@@ -48,63 +77,28 @@ export default function Orders() {
   });
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await api.get("/orders");
-        const json = res.data;
-        const mapped = json.data.map((o: any) => {
-            const itemsArray = (o.items || "1x Order Item").split(',').map((i: string) => {
-              const parts = i.trim().split('x ');
-              return { qty: parseInt(parts[0]) || 1, name: parts[1] || parts[0] };
-            });
-
-            return {
-              id: o.id,
-              stall: o.stall_name || o.stall || "Stall",
-              date: `${o.date}, ${o.time}`,
-              items: itemsArray,
-              summary: o.items_summary || o.items || "Order Items",
-              total: o.total,
-              status: o.status,
-              location: o.stall_location || "Gondia City, Maharashtra",
-              // Store rating data internally for demo
-              ratingData: {
-                app: { score: 0, timestamp: null },
-                restaurant: { score: 0, timestamp: null },
-                rider: { score: 0, timestamp: null }
-              }
-            };
-          });
-          setOrders(mapped);
-
-          // Listen to real-time updates for active orders
-          let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket", "polling"], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
-          
-          mapped.forEach((o: any) => {
-            if (!['delivered', 'cancelled', 'declined'].includes(o.status)) {
-              socket.on(`order:${o.id}`, (update: any) => {
-                setOrders(prev => prev.map(order => order.id === update.id || order.id.toString() === update.id ? { ...order, status: update.status } : order));
-              });
-            }
-          });
-          
-          // Cleanup socket on unmount
-          return () => socket.disconnect();
-
-      } catch (err) {
-        console.error("Failed to fetch orders", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (!orders.length) return;
     
-    let cleanupSocket: any;
-    fetchOrders().then(cleanup => cleanupSocket = cleanup);
-
-    return () => {
-      if (cleanupSocket) cleanupSocket();
-    };
-  }, []);
+    let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); 
+    const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket", "polling"], reconnection: true });
+    
+    const activeOrders = orders.filter(o => !['delivered', 'cancelled', 'declined'].includes(o.status));
+    
+    activeOrders.forEach((o) => {
+      socket.on(`order:${o.id}`, (update) => {
+        mutateOrders((current: any) => {
+          if (!current) return current;
+          let currentData = current.data || current;
+          if (!Array.isArray(currentData)) return current;
+          
+          const newOrders = currentData.map(co => (co.id === update.id || co.id?.toString() === update.id) ? { ...co, status: update.status } : co);
+          return { ...current, data: newOrders };
+        }, false);
+      });
+    });
+    
+    return () => { socket.disconnect(); };
+  }, [orders, mutateOrders]);
 
   const handleReorder = (order: any) => {
     clearCart();
@@ -152,7 +146,7 @@ export default function Orders() {
     if (updatedRatings.rider.score > 0 && !updatedRatings.rider.timestamp) updatedRatings.rider.timestamp = now;
 
     // Save back to the orders list
-    setOrders(prev => prev.map(o => o.id === orderToRate.id ? { ...o, ratingData: updatedRatings } : o));
+    mutateOrders((current: any) => { if(!current) return current; const d = current.data || current; return {...current, data: d.map((o:any) => o.id === orderToRate.id ? { ...o, ratingData: updatedRatings } : o)}; }, false);
     
     setOrderToRate(null);
     alert('Ratings submitted successfully!');

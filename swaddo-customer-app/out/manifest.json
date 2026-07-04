@@ -1,17 +1,14 @@
 {
-  "name": "SwaDDo - Cravings Delivered",
-  "short_name": "SwaDDo",
-  "description": "Order food from your favorite nearby stalls instantly.",
-  "start_url": "/home",
+  "name": "Swaddo Food",
+  "short_name": "Swaddo",
+  "description": "Order food from local stalls and vendors, delivered to your door",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#FFF8F0",
   "theme_color": "#E2401C",
   "icons": [
-    {
-      "src": "/icon.svg",
-      "sizes": "192x192 512x512 any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

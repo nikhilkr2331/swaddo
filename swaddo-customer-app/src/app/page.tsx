@@ -406,7 +406,7 @@ export default function Home() {
                   </div>
                 </div>
               ))
-            ) : stalls.filter(stall => stall.category.toLowerCase().includes(activeCategory.toLowerCase())).length === 0 ? (
+            ) : stalls.filter((stall: any) => stall.category.toLowerCase().includes(activeCategory.toLowerCase())).length === 0 ? (
               <div className="col-span-full py-10 text-center flex flex-col items-center">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                    <Search className="text-gray-400" size={32} />
@@ -416,8 +416,8 @@ export default function Home() {
               </div>
             ) : (
               stalls
-                .filter(stall => stall.category.toLowerCase().includes(activeCategory.toLowerCase()))
-                .map((stall) => (
+                .filter((stall: any) => stall.category.toLowerCase().includes(activeCategory.toLowerCase()))
+                .map((stall: any) => (
               <motion.div key={stall.id} variants={itemVariants} whileTap={{ scale: 0.98 }}>
                 <Link href={`/stall?id=${stall.id}`} className="block group">
                   <div className={`flex flex-col bg-white/80 backdrop-blur-md rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white/40 overflow-hidden ${!stall.available ? "opacity-70 grayscale-[0.3]" : ""}`}>
