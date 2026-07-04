@@ -109,6 +109,7 @@ export default function Checkout() {
   
   // Map Modal State
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [mapLat, setMapLat] = useState(latitude || 25.611);
   const [mapLng, setMapLng] = useState(longitude || 85.130);
   const [mapAddressTag, setMapAddressTag] = useState<'Home' | 'Work' | 'Other'>('Home');
@@ -211,6 +212,7 @@ export default function Checkout() {
       return;
     }
 
+    setIsSavingAddress(true);
     let finalAddress = "Location Selected on Map";
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
@@ -266,6 +268,7 @@ export default function Checkout() {
     setCustomerName("");
     setCustomerPhone("");
     setEditAddressId(null);
+    setIsSavingAddress(false);
   };
 
   const handleUseCurrentLocation = () => {
@@ -530,9 +533,9 @@ export default function Checkout() {
           
           <div className="bg-white rounded-[24px] border border-transparent shadow-native p-5">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-heading font-black text-[18px] text-text-primary uppercase tracking-tight">Deliver to</h2>
-              <button onClick={() => setIsMapOpen(true)} className="text-primary text-[13px] font-bold flex items-center gap-1 hover:text-primary-hover transition-colors">
-                <MapPin size={14} /> Add New
+              <h2 className="font-heading font-black text-[18px] text-text-primary uppercase tracking-tight pl-1">Deliver to</h2>
+              <button onClick={() => { setCustomerPhone(phone); setIsMapOpen(true); }} className="text-primary text-[13px] font-bold flex items-center gap-1 hover:text-primary-hover transition-colors">
+                <Plus size={16} /> Add New Address
               </button>
             </div>
             
@@ -540,8 +543,8 @@ export default function Checkout() {
               {savedAddresses.length === 0 ? (
                 <div className="text-center py-6 border-2 border-dashed border-border-subtle rounded-xl">
                   <MapPin className="mx-auto text-text-muted mb-2" size={32} />
-                  <p className="text-text-muted text-sm mb-4">No saved addresses yet</p>
-                  <button onClick={() => setIsMapOpen(true)} className="bg-primary/10 text-primary font-bold px-4 py-2 rounded-lg text-sm">
+                  <p className="text-text-muted text-[13px] mb-4">No saved addresses yet</p>
+                  <button onClick={() => { setCustomerPhone(phone); setIsMapOpen(true); }} className="bg-primary/10 text-primary font-bold px-4 py-2 rounded-lg text-sm">
                     Add an Address
                   </button>
                 </div>
@@ -910,11 +913,12 @@ export default function Checkout() {
                 ))}
               </div>
               <button 
-                onClick={handleSaveAddress}
-                className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg transition-all"
-              >
-                Confirm Location
-              </button>
+              onClick={handleSaveAddress}
+              disabled={isSavingAddress}
+              className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3.5 rounded-[16px] transition-all shadow-[0_4px_12px_rgba(226,64,28,0.25)] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isSavingAddress ? <Loader2 className="animate-spin" size={20} /> : "Save & Continue"}
+            </button>
             </div>
           </motion.div>
         )}
