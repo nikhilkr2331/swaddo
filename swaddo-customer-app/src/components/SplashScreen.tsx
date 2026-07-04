@@ -9,12 +9,19 @@ export default function SplashScreen() {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
+    const hasSeen = sessionStorage.getItem("swaddo_has_seen_splash");
+    if (hasSeen) {
+      setShow(false);
+      setMounted(true);
+      return;
+    }
+    
     setMounted(true);
-    // Increased timeout for a richer animation experience
-    // Increased timeout slightly for a better visual experience based on user feedback
+    sessionStorage.setItem("swaddo_has_seen_splash", "true");
+    
     const t = setTimeout(() => {
       setShow(false);
-    }, 100);
+    }, 2500);
     return () => clearTimeout(t);
   }, []);
 

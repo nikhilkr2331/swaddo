@@ -80,6 +80,7 @@ export default function Checkout() {
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("upi"); // 'upi' or 'cod'
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [phone, setPhone] = useState("+91 98765 43210");
   const [houseNumber, setHouseNumber] = useState("");
 
@@ -388,7 +389,10 @@ export default function Checkout() {
         const res = await api.post("/orders", payload);
         if (res.data && res.data.order) {
           clearCart();
-          router.push(`/track?id=${res.data.order.id}`);
+          setShowSuccessModal(true);
+          setTimeout(() => {
+            router.push(`/track?id=${res.data.order.id}`);
+          }, 2000);
         } else {
           alert("Failed to place order.");
           setIsPlacingOrder(false);
@@ -408,7 +412,7 @@ export default function Checkout() {
           description: "Food Order",
           order_id: orderRes.data.razorpay_order_id,
           handler: async function (response: any) {
-            try {
+              try {
               setIsPlacingOrder(true);
               await api.post("/payments/verify", {
                 swaddo_order_id: orderRes.data.order_id,
@@ -418,7 +422,10 @@ export default function Checkout() {
               });
               
               clearCart();
-              router.push(`/track?id=${orderRes.data.order_id}`);
+              setShowSuccessModal(true);
+              setTimeout(() => {
+                router.push(`/track?id=${orderRes.data.order_id}`);
+              }, 2000);
             } catch (err: any) {
               console.error(err);
               alert("Payment verification failed: " + (err.response?.data?.message || err.message));
@@ -462,7 +469,7 @@ export default function Checkout() {
 
   return (
     <>
-      <div className="app-scroll-container bg-bg-main pb-32 xl:pb-12 xl:pt-8 font-body">
+      <div className="app-scroll-container bg-bg-main pb-48 xl:pb-12 xl:pt-8 font-body">
         <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       
       {/* Sticky Header */}
@@ -680,7 +687,7 @@ export default function Checkout() {
         </div>
       </div>
 
-      <div className="xl:hidden fixed bottom-4 left-4 right-4 z-40">
+      <div className="xl:hidden fixed bottom-[85px] left-4 right-4 z-40">
         <button 
           onClick={handlePlaceOrder}
           disabled={isPlacingOrder}
@@ -856,9 +863,57 @@ export default function Checkout() {
                 onClick={handleSaveAddress}
                 className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg transition-all"
               >
-                Save & Proceed
+                Confirm Location
               </button>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Order Success Modal */}
+      <AnimatePresence>
+        {showSuccessModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm px-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ type: "spring", bounce: 0.5, duration: 0.6 }}
+              className="bg-white rounded-[32px] p-8 flex flex-col items-center justify-center text-center shadow-2xl max-w-sm w-full relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-green-50 to-transparent"></div>
+              
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1, rotate: 360 }}
+                transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
+                className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30 mb-6 relative z-10"
+              >
+                <Check size={40} className="text-white" strokeWidth={3} />
+              </motion.div>
+              
+              <motion.h2 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-2xl font-heading font-black text-gray-900 mb-2 relative z-10"
+              >
+                Order Placed!
+              </motion.h2>
+              
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-sm font-medium text-gray-500 relative z-10"
+              >
+                Your delicious food is on the way. Taking you to the tracking page...
+              </motion.p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

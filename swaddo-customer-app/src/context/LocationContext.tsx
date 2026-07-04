@@ -34,70 +34,75 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
     const savedLng = localStorage.getItem("swaddo_lng");
     const savedLiveLat = localStorage.getItem("swaddo_live_lat");
     const savedLiveLng = localStorage.getItem("swaddo_live_lng");
+    const locationType = localStorage.getItem("swaddo_location_type");
     
     if (savedLiveLat) setLiveLatitude(parseFloat(savedLiveLat));
     if (savedLiveLng) setLiveLongitude(parseFloat(savedLiveLng));
 
-    if (savedLoc && savedLat && savedLng) {
+    // Show cached location immediately to prevent UI flicker
+    if (savedLoc && savedLoc !== "Locating..." && savedLat && savedLng) {
       setCurrentLocation(savedLoc);
       setHasSetLocation(true);
       setLatitude(parseFloat(savedLat));
       setLongitude(parseFloat(savedLng));
       setIsLocationLoading(false);
-      return;
     }
 
-    // Otherwise, auto-fetch live GPS
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            setCoordinates(latitude, longitude, true);
-            setLiveLatitude(latitude);
-            setLiveLongitude(longitude);
-            localStorage.setItem("swaddo_live_lat", latitude.toString());
-            localStorage.setItem("swaddo_live_lng", longitude.toString());
-            
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
-            const res = await fetch(`${baseUrl}/location/reverse-geocode`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ lat: latitude, lng: longitude })
-            });
-            const data = await res.json();
-            
-            if (data && data.data) {
-              let locationName = data.data.city || "Location found";
-              if (data.data.address) {
-                const parts = data.data.address.split(',').map((s: string) => s.trim()).filter((s: string) => !s.includes('+') && !s.match(/^[A-Z0-9]{4}\+[A-Z0-9]{2,}/));
-                if (parts.length > 0) {
-                  locationName = parts[0];
+    // Auto-fetch live GPS if they haven't set a manual address, or if nothing is saved
+    if (!savedLoc || savedLoc === "Locating..." || locationType !== "manual") {
+      if ("geolocation" in navigator) {
+        if (!savedLoc || savedLoc === "Locating...") setIsLocationLoading(true);
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              const { latitude, longitude } = position.coords;
+              setCoordinates(latitude, longitude, true);
+              setLiveLatitude(latitude);
+              setLiveLongitude(longitude);
+              localStorage.setItem("swaddo_live_lat", latitude.toString());
+              localStorage.setItem("swaddo_live_lng", longitude.toString());
+              
+              const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
+              const res = await fetch(`${baseUrl}/location/reverse-geocode`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lat: latitude, lng: longitude })
+              });
+              const data = await res.json();
+              
+              if (data && data.data) {
+                let locationName = data.data.city || "Location found";
+                if (data.data.address) {
+                  const parts = data.data.address.split(',').map((s: string) => s.trim()).filter((s: string) => !s.includes('+') && !s.match(/^[A-Z0-9]{4}\+[A-Z0-9]{2,}/));
+                  if (parts.length > 0) {
+                    locationName = parts[0];
+                  }
                 }
+                setCurrentLocation(locationName);
+                localStorage.setItem("swaddo_location", locationName);
+                setHasSetLocation(true);
+                localStorage.setItem("swaddo_location_type", "live");
+              } else {
+                if (!savedLoc || savedLoc === "Locating...") setCurrentLocation("");
               }
-              setCurrentLocation(locationName);
-              localStorage.setItem("swaddo_location", locationName);
-              setHasSetLocation(true);
-              localStorage.setItem("swaddo_location_type", "live");
-            } else {
-              if (!savedLoc) setCurrentLocation("");
+            } catch (err) {
+              console.error("Geocoding failed", err);
+              if (!savedLoc || savedLoc === "Locating...") setCurrentLocation("");
+            } finally {
+              setIsLocationLoading(false);
             }
-          } catch (err) {
-            console.error("Geocoding failed", err);
-            if (!savedLoc) setCurrentLocation("");
-          } finally {
+          },
+          (error) => {
+            console.error("Geolocation error", error);
+            if (!savedLoc || savedLoc === "Locating...") setCurrentLocation("");
             setIsLocationLoading(false);
-          }
-        },
-        (error) => {
-          console.error("Geolocation error", error);
-          if (!savedLoc) setCurrentLocation("");
-          setIsLocationLoading(false);
-        }
-      );
-    } else {
-      if (!savedLoc) setCurrentLocation("");
-      setIsLocationLoading(false);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      } else {
+        if (!savedLoc || savedLoc === "Locating...") setCurrentLocation("");
+        setIsLocationLoading(false);
+      }
     }
   }, []);
 

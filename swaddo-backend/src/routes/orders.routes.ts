@@ -63,7 +63,7 @@ router.post('/', authenticate, orderLimiter, async (req: AuthRequest, res: Respo
     // Haversine Distance Check and Open Status
     const stallRes = await client.query('SELECT latitude, longitude, is_open FROM stalls WHERE id = $1', [stallId]);
     if (stallRes.rows.length === 0) {
-      return res.status(404).json({ message: 'Stall not found' });
+      return res.status(404).json({ message: `Stall not found for ID: ${stallId}. Please check your cart or database.` });
     }
     const stallLoc = stallRes.rows[0];
     
