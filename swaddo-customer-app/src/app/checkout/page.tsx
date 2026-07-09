@@ -91,20 +91,48 @@ export default function Checkout() {
   const [restaurantInstructions, setRestaurantInstructions] = useState("");
   
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("swaddo_saved_addresses");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setSavedAddresses(parsed);
-            setSelectedAddressId(parsed[0].id); // Auto-select the first saved address
+    const fetchAddresses = async () => {
+      try {
+        const res = await api.get('/auth/addresses');
+        if (res.data && res.data.length > 0) {
+          const apiAddresses = res.data.map((a: any) => ({
+            id: a.id.toString(),
+            tag: a.tag,
+            customerName: a.name,
+            customerPhone: a.phone,
+            houseNumber: a.house_number || "",
+            street: "",
+            fullAddress: a.full_address,
+            latitude: parseFloat(a.lat),
+            longitude: parseFloat(a.lng)
+          }));
+          setSavedAddresses(apiAddresses);
+          setSelectedAddressId(apiAddresses[0].id);
+          localStorage.setItem("swaddo_saved_addresses", JSON.stringify(apiAddresses));
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to fetch addresses from API", err);
+      }
+      
+      // Fallback
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("swaddo_saved_addresses");
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setSavedAddresses(parsed);
+              setSelectedAddressId(parsed[0].id);
+            }
+          } catch (e) {
+            console.error("Failed to parse saved addresses", e);
           }
-        } catch (e) {
-          console.error("Failed to parse saved addresses", e);
         }
       }
-    }
+    };
+    
+    fetchAddresses();
   }, []);
   
   // Map Modal State
@@ -253,6 +281,25 @@ export default function Checkout() {
       longitude: mapLng
     };
 
+    try {
+      if (!editAddressId) {
+        const res = await api.post('/auth/addresses', {
+          tag: mapAddressTag,
+          name: customerName,
+          phone: customerPhone,
+          house_number: houseNumber || "",
+          full_address: finalAddress,
+          lat: mapLat,
+          lng: mapLng
+        });
+        if (res.data && res.data.id) {
+          newAddress.id = res.data.id.toString();
+        }
+      }
+    } catch (e) {
+      console.error("Failed to save to backend API", e);
+    }
+
     const updatedAddresses = editAddressId 
       ? savedAddresses.map(addr => addr.id === editAddressId ? newAddress : addr)
       : [...savedAddresses, newAddress];
@@ -319,17 +366,6 @@ export default function Checkout() {
     if (typeof window !== 'undefined') {
       const storedPhone = localStorage.getItem('swaddo_customer_phone');
       if (storedPhone) setPhone(storedPhone);
-
-      const storedAddresses = localStorage.getItem('swaddo_saved_addresses');
-      if (storedAddresses) {
-        try {
-          const parsed = JSON.parse(storedAddresses);
-          setSavedAddresses(parsed);
-          if (parsed.length > 0) {
-            setSelectedAddressId(parsed[0].id);
-          }
-        } catch(e) {}
-      }
     }
   }, []);
 
