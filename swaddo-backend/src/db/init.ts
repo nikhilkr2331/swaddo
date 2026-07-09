@@ -17,9 +17,27 @@ const runSchema = async () => {
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        phone VARCHAR(15) UNIQUE NOT NULL,
-        name VARCHAR(100),
+        phone VARCHAR(20) UNIQUE NOT NULL,
+        name VARCHAR(150),
+        profile_picture TEXT,
+        email VARCHAR(150),
         role user_role DEFAULT 'customer',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // User Addresses
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_addresses (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        tag VARCHAR(50),
+        name VARCHAR(150),
+        phone VARCHAR(20),
+        house_number VARCHAR(100),
+        full_address TEXT,
+        lat DECIMAL(10,8),
+        lng DECIMAL(11,8),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

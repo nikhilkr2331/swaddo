@@ -175,6 +175,23 @@ router.get('/addresses', authenticate, async (req: AuthRequest, res: Response) =
   try {
     const userId = req.user?.id;
     const client = await pool.connect();
+    
+    // Auto-create table if missing
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_addresses (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        tag VARCHAR(50),
+        name VARCHAR(150),
+        phone VARCHAR(20),
+        house_number VARCHAR(100),
+        full_address TEXT,
+        lat DECIMAL(10,8),
+        lng DECIMAL(11,8),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
     const result = await client.query('SELECT * FROM user_addresses WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
     client.release();
     res.json(result.rows);
@@ -190,6 +207,23 @@ router.post('/addresses', authenticate, async (req: AuthRequest, res: Response) 
     const { tag, name, phone, house_number, full_address, lat, lng } = req.body;
     
     const client = await pool.connect();
+    
+    // Auto-create table if missing
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_addresses (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        tag VARCHAR(50),
+        name VARCHAR(150),
+        phone VARCHAR(20),
+        house_number VARCHAR(100),
+        full_address TEXT,
+        lat DECIMAL(10,8),
+        lng DECIMAL(11,8),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
     const result = await client.query(
       'INSERT INTO user_addresses (user_id, tag, name, phone, house_number, full_address, lat, lng) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
       [userId, tag, name, phone, house_number, full_address, lat, lng]
