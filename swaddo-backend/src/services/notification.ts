@@ -52,7 +52,12 @@ export const notificationService = {
   async sendToVendor(vendorId: number, title: string, body: string, data?: any) {
     try {
       const client = await pool.connect();
-      const result = await client.query('SELECT fcm_token FROM vendors WHERE id = $1', [vendorId]);
+      const result = await client.query(`
+        SELECT u.fcm_token 
+        FROM users u 
+        JOIN vendors v ON u.id = v.user_id 
+        WHERE v.id = $1
+      `, [vendorId]);
       client.release();
       
       const token = result.rows[0]?.fcm_token;
@@ -74,7 +79,12 @@ export const notificationService = {
   async sendToRider(riderId: number, title: string, body: string, data?: any) {
     try {
       const client = await pool.connect();
-      const result = await client.query('SELECT fcm_token FROM delivery_partners WHERE id = $1', [riderId]);
+      const result = await client.query(`
+        SELECT u.fcm_token 
+        FROM users u 
+        JOIN delivery_partners dp ON u.id = dp.user_id 
+        WHERE dp.id = $1
+      `, [riderId]);
       client.release();
       
       const token = result.rows[0]?.fcm_token;

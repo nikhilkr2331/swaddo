@@ -1,6 +1,6 @@
 import { Application } from 'express';
 import { pool } from '../db';
-import { sendPushNotification } from '../services/notifications';
+import { notificationService } from '../services/notification';
 
 /**
  * Standardized Order Status Enum
@@ -75,11 +75,11 @@ export const emitOrderStatusUpdate = (
         else if (status === 'out_for_delivery') { title = 'Out for Delivery'; body = 'Your food is on the way!'; }
         else if (status === 'delivered') { title = 'Delivered'; body = 'Enjoy your meal!'; }
         
-        await sendPushNotification(customerId, title, body, { type: 'order_update', orderId: orderId.toString() });
+        await notificationService.sendToUser(customerId, title, body, { type: 'order_update', orderId: orderId.toString() });
       }
 
       if (vendorUserId && (status === 'placed' || status === 'payment_pending')) {
-        await sendPushNotification(vendorUserId, 'New Order Received', 'You have a new order waiting to be accepted.', { type: 'new_order', orderId: orderId.toString() });
+        await notificationService.sendToUser(vendorUserId, 'New Order Received', 'You have a new order waiting to be accepted.', { type: 'new_order', orderId: orderId.toString() });
       }
 
       // Delivery partner push notification is usually triggered when a job is assigned.
@@ -96,7 +96,7 @@ export const emitOrderStatusUpdate = (
         // For simplicity, we just notify the explicitly assigned one if we found it.
         const riderUserId = assignRes.rows[0]?.user_id;
         if (riderUserId) {
-          await sendPushNotification(riderUserId, 'New Delivery Assigned', 'You have a new order to pick up.', { type: 'new_delivery', orderId: orderId.toString() });
+          await notificationService.sendToUser(riderUserId, 'New Delivery Assigned', 'You have a new order to pick up.', { type: 'new_delivery', orderId: orderId.toString() });
         }
       }
 
