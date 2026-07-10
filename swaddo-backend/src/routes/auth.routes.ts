@@ -253,4 +253,24 @@ router.delete('/addresses/:id', authenticate, async (req: AuthRequest, res: Resp
   }
 });
 
+router.post('/fcm-token', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { token } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({ message: 'FCM token is required' });
+    }
+    
+    const client = await pool.connect();
+    await client.query('UPDATE users SET fcm_token = $1 WHERE id = $2', [token, userId]);
+    client.release();
+    
+    res.json({ message: 'FCM token saved successfully' });
+  } catch (error) {
+    logger.error('Error saving FCM token:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 export default router;

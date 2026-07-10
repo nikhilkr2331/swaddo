@@ -4,6 +4,7 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 import { orderQueue } from '../services/queue';
 import { rateLimit } from 'express-rate-limit';
 import { assignmentManager } from '../services/assignment';
+import { notificationService } from '../services/notification';
 import { emitOrderStatusUpdate } from '../utils/socketEmitters';
 import { googleRouteETA } from '../services/googlemaps.service';
 import { logger } from '../utils/logger';
@@ -143,6 +144,32 @@ router.post('/', authenticate, orderLimiter, async (req: AuthRequest, res: Respo
         deliveryInstructions: deliveryInstructions || null,
         restaurantInstructions: restaurantInstructions || null,
         items: itemsDescription,
+        total: order.total_amount
+      };
+
+      req.app.get('io').to(`stall_${stallId}`).emit('new_order', {
+        orderId: order.id,
+        stallId,
+        items,
+        total: order.total_amount,
+        customerName: customerFullName,
+        customerPhone: dbCustomerPhone
+      });
+      
+      // Notify Merchant via FCM Push Notification
+      const stallResForPush = await client.query('SELECT vendor_id FROM stalls WHERE id = $1', [stallId]);
+      if (stallResForPush.rows.length > 0) {
+        const vendorId = stallResForPush.rows[0].vendor_id;
+        // vendorId is basically a reference to vendors table. 
+        // Our notificationService uses user_id behind the scenes if it queries vendors table.
+        // Wait, sendToVendor expects vendorId!
+        notificationService.sendToVendor(
+          vendorId, 
+          'New Order Received! 🚀', 
+          `${customerFirstName} just placed an order for ₹${order.total_amount}`
+        );
+      }
+    }
         total: totalAmount,
         time: new Date(order.created_at).toLocaleTimeString(),
         date: new Date(order.created_at).toLocaleDateString(),
@@ -310,6 +337,13 @@ router.patch('/:id/status', authenticate, async (req: AuthRequest, res: Response
 
     // Emit to targeted channels
     emitOrderStatusUpdate(req.app, order.id, order.stall_id, status);
+    
+    // Send Push Notification to Customer
+    notificationService.sendToUser(
+      order.customer_id, 
+      `Order Status Update 🔔`, 
+      `Your order #${order.id} is now ${status}`
+    );
 
     // If status is delivered, update the assignment earnings
     if (status === 'delivered') {

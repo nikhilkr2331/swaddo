@@ -4,9 +4,13 @@ import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, X } from "lucide-react";
+import { useFCM } from "../hooks/useFCM";
 
 export default function NotificationListener() {
   const [notification, setNotification] = useState<{title: string; message: string} | null>(null);
+  
+  // Initialize Firebase Cloud Messaging
+  useFCM();
 
   useEffect(() => {
     let socketUrl = process.env.NEXT_PUBLIC_WS_URL; if (!socketUrl && process.env.NEXT_PUBLIC_API_URL) socketUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, ""); const socket = io(socketUrl || "http://localhost:5005", { transports: ["websocket", "polling"], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });

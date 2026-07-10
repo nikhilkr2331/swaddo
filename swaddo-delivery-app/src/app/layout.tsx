@@ -4,6 +4,7 @@ import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import SplashScreen from "@/components/SplashScreen";
 import PWARegister from "@/components/PWARegister";
+import FCMListener from "@/components/FCMListener";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const poppins = Poppins({ 
@@ -33,6 +34,7 @@ export default function RootLayout({
           {children}
         </main>
         <PWARegister />
+        <FCMListener />
         <BottomNav />
       </body>
     </html>

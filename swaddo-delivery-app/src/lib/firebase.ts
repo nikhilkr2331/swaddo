@@ -30,7 +30,7 @@ export const requestNotificationPermission = async () => {
     }
     return null;
   } catch (error) {
-    console.log("FCM Permission Error");
+    console.error("FCM Permission Error:", error);
     return null;
   }
 };

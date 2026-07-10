@@ -4,6 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import SplashScreen from "@/components/SplashScreen";
 import PWARegister from "@/components/PWARegister";
 import SWRProvider from "@/components/SWRProvider";
+import FCMListener from "@/components/FCMListener";
 
 import PageTransitionWrapper from "@/components/PageTransitionWrapper";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
               </PageTransitionWrapper>
             </main>
             <PWARegister />
+            <FCMListener />
             <BottomNav />
           </div>
         </SWRProvider>

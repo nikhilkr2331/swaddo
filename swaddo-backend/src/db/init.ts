@@ -25,6 +25,12 @@ const runSchema = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    
+    await client.query(`
+      DO $$ BEGIN
+        ALTER TABLE users ADD COLUMN fcm_token TEXT;
+      EXCEPTION WHEN duplicate_column THEN null; END $$;
+    `);
 
     // User Addresses
     await client.query(`
@@ -68,6 +74,7 @@ const runSchema = async () => {
       DO $$ BEGIN ALTER TABLE vendors ADD COLUMN bank_ifsc VARCHAR(20); EXCEPTION WHEN duplicate_column THEN null; END $$;
       DO $$ BEGIN ALTER TABLE vendors ADD COLUMN pan_number VARCHAR(20); EXCEPTION WHEN duplicate_column THEN null; END $$;
       DO $$ BEGIN ALTER TABLE vendors ADD COLUMN aadhaar_number VARCHAR(20); EXCEPTION WHEN duplicate_column THEN null; END $$;
+      DO $$ BEGIN ALTER TABLE vendors ADD COLUMN fcm_token TEXT; EXCEPTION WHEN duplicate_column THEN null; END $$;
     `);
 
     // Stalls
@@ -253,6 +260,9 @@ const runSchema = async () => {
       EXCEPTION WHEN duplicate_column THEN null; END $$;
       DO $$ BEGIN
         ALTER TABLE delivery_partners ADD COLUMN ifsc_code VARCHAR(20);
+      EXCEPTION WHEN duplicate_column THEN null; END $$;
+      DO $$ BEGIN
+        ALTER TABLE delivery_partners ADD COLUMN fcm_token TEXT;
       EXCEPTION WHEN duplicate_column THEN null; END $$;
     `);
     
