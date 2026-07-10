@@ -1,16 +1,17 @@
-import * as admin from 'firebase-admin';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
 import { logger } from '../utils/logger';
 import { pool } from '../db';
 
 // Initialize Firebase Admin if not already initialized
-if (!admin.apps.length) {
+if (!getApps().length) {
   try {
     // If running on Render, the service account JSON might be passed as an env string
     // or we might need to load it from a file.
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+      initializeApp({
+        credential: cert(serviceAccount)
       });
       logger.info("Firebase Admin initialized successfully from env");
     } else {
@@ -93,7 +94,7 @@ export const notificationService = {
    * Internal method to actually send the message via Firebase Admin
    */
   async sendPush(token: string, title: string, body: string, data?: any) {
-    if (!admin.apps.length) return false;
+    if (!getApps().length) return false;
     
     try {
       const message = {
@@ -108,7 +109,7 @@ export const notificationService = {
         token
       };
 
-      const response = await admin.messaging().send(message);
+      const response = await getMessaging().send(message);
       logger.info(`Successfully sent message: ${response}`);
       return true;
     } catch (error) {
