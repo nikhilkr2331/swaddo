@@ -3,12 +3,13 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.3/firebase-messaging-com
 
 // IMPORTANT: These values need to be manually replaced by the user after Firebase setup
 const firebaseConfig = {
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME"
+  apiKey: "AIzaSyBM8cWMeSbfQR9vg4G3DAitKSn1ABifKY4",
+  authDomain: "swaddo-pwa.firebaseapp.com",
+  projectId: "swaddo-pwa",
+  storageBucket: "swaddo-pwa.firebasestorage.app",
+  messagingSenderId: "1083737771617",
+  appId: "1:1083737771617:web:2319df7e88ab29481c2420",
+  measurementId: "G-1W29CB12K2"
 };
 
 // Check if valid config before initializing to prevent crashes in local dev

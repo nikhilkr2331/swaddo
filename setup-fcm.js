@@ -7,12 +7,13 @@ const firebaseTs = `import { initializeApp, getApps } from "firebase/app";
 import { getMessaging, getToken, onMessage, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBM8cWMeSbfQR9vg4G3DAitKSn1ABifKY4",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "swaddo-pwa.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "swaddo-pwa",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "swaddo-pwa.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1083737771617",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:1083737771617:web:2319df7e88ab29481c2420",
+  measurementId: "G-1W29CB12K2"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
@@ -56,12 +57,13 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.3/firebase-messaging-com
 
 // IMPORTANT: These values need to be manually replaced by the user after Firebase setup
 const firebaseConfig = {
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME"
+  apiKey: "AIzaSyBM8cWMeSbfQR9vg4G3DAitKSn1ABifKY4",
+  authDomain: "swaddo-pwa.firebaseapp.com",
+  projectId: "swaddo-pwa",
+  storageBucket: "swaddo-pwa.firebasestorage.app",
+  messagingSenderId: "1083737771617",
+  appId: "1:1083737771617:web:2319df7e88ab29481c2420",
+  measurementId: "G-1W29CB12K2"
 };
 
 // Check if valid config before initializing to prevent crashes in local dev
