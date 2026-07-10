@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { requestNotificationPermission, onForegroundMessage } from '../lib/firebase';
-import api from '../lib/api';
+import { api } from '../lib/api';
 
 export const useFCM = () => {
   useEffect(() => {
