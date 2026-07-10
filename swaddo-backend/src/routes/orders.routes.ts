@@ -144,14 +144,17 @@ router.post('/', authenticate, orderLimiter, async (req: AuthRequest, res: Respo
         deliveryInstructions: deliveryInstructions || null,
         restaurantInstructions: restaurantInstructions || null,
         items: itemsDescription,
-        total: order.total_amount
+        total: totalAmount,
+        time: new Date(order.created_at).toLocaleTimeString(),
+        date: new Date(order.created_at).toLocaleDateString(),
+        created_at: order.created_at
       };
 
       req.app.get('io').to(`stall_${stallId}`).emit('new_order', {
         orderId: order.id,
         stallId,
         items,
-        total: order.total_amount,
+        total: totalAmount,
         customerName: customerFullName,
         customerPhone: dbCustomerPhone
       });
@@ -160,21 +163,13 @@ router.post('/', authenticate, orderLimiter, async (req: AuthRequest, res: Respo
       const stallResForPush = await client.query('SELECT vendor_id FROM stalls WHERE id = $1', [stallId]);
       if (stallResForPush.rows.length > 0) {
         const vendorId = stallResForPush.rows[0].vendor_id;
-        // vendorId is basically a reference to vendors table. 
-        // Our notificationService uses user_id behind the scenes if it queries vendors table.
-        // Wait, sendToVendor expects vendorId!
         notificationService.sendToVendor(
           vendorId, 
           'New Order Received! 🚀', 
-          `${customerFirstName} just placed an order for ₹${order.total_amount}`
+          `${customerFirstName} just placed an order for ₹${totalAmount}`
         );
       }
-    }
-        total: totalAmount,
-        time: new Date(order.created_at).toLocaleTimeString(),
-        date: new Date(order.created_at).toLocaleDateString(),
-        created_at: order.created_at
-      };
+
       emitOrderStatusUpdate(req.app, order.id, stallId, 'pending', merchantPayload);
     }
 
