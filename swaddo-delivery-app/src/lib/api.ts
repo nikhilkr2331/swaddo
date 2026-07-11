@@ -26,7 +26,9 @@ api.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('swaddo_delivery_token');
         localStorage.removeItem('swaddo_delivery_phone');
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
