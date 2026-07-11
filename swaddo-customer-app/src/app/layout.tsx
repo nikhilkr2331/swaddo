@@ -11,6 +11,7 @@ import SplashScreen from "@/components/SplashScreen";
 import PWARegister from "@/components/PWARegister";
 import SWRProvider from "@/components/SWRProvider";
 import { Toaster } from "react-hot-toast";
+import OfflineOverlay from "@/components/OfflineOverlay";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const poppins = Poppins({ 
@@ -66,6 +67,7 @@ export default function RootLayout({
 
             {/* Bottom Nav for Mobile */}
             <BottomNav />
+            <OfflineOverlay />
           </CartProvider>
         </LocationProvider>
         </SWRProvider>
