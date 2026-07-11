@@ -118,7 +118,7 @@ export default function SupportChat() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#F8F9FA] font-body max-w-5xl mx-auto border-x border-gray-100 pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-[#F8F9FA] font-body max-w-5xl mx-auto border-x border-gray-100 pb-[env(safe-area-inset-bottom)]">
       {/* Header */}
       <div className="bg-white px-4 py-4 border-b border-gray-100 shadow-sm flex items-center justify-between shrink-0 z-10 sticky top-0">
         <div className="flex items-center gap-3">
