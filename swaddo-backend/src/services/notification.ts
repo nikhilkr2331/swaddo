@@ -130,6 +130,35 @@ export const notificationService = {
   },
 
   /**
+   * Broadcast a notification to multiple FCM tokens at once.
+   */
+  async broadcastToTokens(tokens: string[], title: string, body: string, data?: any) {
+    if (!getApps().length) return false;
+    if (!tokens || tokens.length === 0) return false;
+    
+    try {
+      const message = {
+        notification: {
+          title,
+          body
+        },
+        data: {
+          ...data,
+          click_action: data?.click_action || 'FLUTTER_NOTIFICATION_CLICK'
+        },
+        tokens
+      };
+
+      const response = await getMessaging().sendEachForMulticast(message);
+      logger.info(`Broadcast success count: ${response.successCount}, failure count: ${response.failureCount}`);
+      return true;
+    } catch (error) {
+      logger.error('Error broadcasting to tokens:', error);
+      return false;
+    }
+  },
+
+  /**
    * Internal method to actually send the message via Firebase Admin
    */
   async sendPush(token: string, title: string, body: string, data?: any) {
