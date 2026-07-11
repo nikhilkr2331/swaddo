@@ -1,6 +1,6 @@
 import express from 'express';
 import { pool } from '../db';
-import { requireAuth } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 import { logger } from '../utils/logger';
 
 const router = express.Router();
@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * Get the current user's active/past support tickets
  */
-router.get('/tickets', requireAuth, async (req: any, res) => {
+router.get('/tickets', authenticate, async (req: any, res) => {
   try {
     const userId = req.user.id;
     const result = await pool.query(
@@ -25,7 +25,7 @@ router.get('/tickets', requireAuth, async (req: any, res) => {
 /**
  * Create a new support ticket
  */
-router.post('/tickets', requireAuth, async (req: any, res) => {
+router.post('/tickets', authenticate, async (req: any, res) => {
   try {
     const userId = req.user.id;
     const { subject, initialMessage } = req.body;
@@ -66,7 +66,7 @@ router.post('/tickets', requireAuth, async (req: any, res) => {
 /**
  * Get messages for a specific ticket
  */
-router.get('/tickets/:id/messages', requireAuth, async (req: any, res) => {
+router.get('/tickets/:id/messages', authenticate, async (req: any, res) => {
   try {
     const ticketId = req.params.id;
     const userId = req.user.id;
@@ -91,7 +91,7 @@ router.get('/tickets/:id/messages', requireAuth, async (req: any, res) => {
 /**
  * Send a message to an existing ticket
  */
-router.post('/tickets/:id/messages', requireAuth, async (req: any, res) => {
+router.post('/tickets/:id/messages', authenticate, async (req: any, res) => {
   try {
     const ticketId = req.params.id;
     const userId = req.user.id;

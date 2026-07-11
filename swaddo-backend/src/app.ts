@@ -11,8 +11,8 @@ import stallRoutes from './routes/stalls.routes';
 import orderRoutes from './routes/orders.routes';
 import paymentRoutes from './routes/payments.routes';
 import adminRoutes from './routes/admin.routes';
-import { deliveryRoutes } from './routes/delivery.routes';
-import { notificationsRoutes } from './routes/notifications.routes';
+import deliveryRoutes from './routes/delivery.routes';
+import notificationRoutes from './routes/notifications.routes';
 import { supportRoutes } from './routes/support.routes';
 import locationRoutes from './routes/location.routes';
 
@@ -50,7 +50,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/notifications', notificationsRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/location', locationRoutes);
 
