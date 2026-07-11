@@ -54,6 +54,13 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('support_message', (data) => {
+    if (data.ticketId) {
+      // Relay the message to the support room so both admin and user can see it instantly
+      socket.to(`support_${data.ticketId}`).emit('support_message', data);
+    }
+  });
+
   socket.on('disconnect', () => {
     assignmentManager.unregisterSocket(socket.id);
     logger.info(`Client disconnected: ${socket.id}`);
@@ -81,6 +88,26 @@ const migrateDB = async () => {
         type VARCHAR(50) DEFAULT 'system',
         is_read BOOLEAN DEFAULT false,
         expires_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    // Create support tables
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS support_tickets (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        subject VARCHAR(255) NOT NULL,
+        status VARCHAR(50) DEFAULT 'open',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      CREATE TABLE IF NOT EXISTS support_messages (
+        id SERIAL PRIMARY KEY,
+        ticket_id INTEGER NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+        sender_type VARCHAR(50) NOT NULL, -- 'user' or 'admin'
+        message TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

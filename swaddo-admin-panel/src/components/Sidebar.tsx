@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Store, ShoppingBag, ShieldAlert, Bike, LogOut, Bell } from "lucide-react";
+import { LayoutDashboard, Store, ShoppingBag, ShieldAlert, Bike, LogOut, Bell, MessageSquare } from "lucide-react";
 import Cookies from "js-cookie";
 
 export default function Sidebar() {
@@ -18,6 +18,7 @@ export default function Sidebar() {
     { name: "Disputes", href: "/disputes", icon: ShieldAlert },
     { name: "Riders", href: "/riders", icon: Bike },
     { name: "Notifications", href: "/notifications", icon: Bell },
+    { name: "Support", href: "/dashboard/support", icon: MessageSquare },
   ];
 
   const handleLogout = () => {

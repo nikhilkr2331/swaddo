@@ -20,7 +20,7 @@ export default function Support() {
         {/* Contact Options */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           
-          <button className="w-full flex items-center gap-4 p-5 hover:bg-gray-50 transition-colors border-b border-gray-100 text-left">
+          <button onClick={() => router.push('/support/chat')} className="w-full flex items-center gap-4 p-5 hover:bg-gray-50 transition-colors border-b border-gray-100 text-left">
             <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
               <MessageSquare size={24} className="text-blue-500" />
             </div>

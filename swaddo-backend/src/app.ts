@@ -9,10 +9,11 @@ import { redis } from './redis';
 import authRoutes from './routes/auth.routes';
 import stallRoutes from './routes/stalls.routes';
 import orderRoutes from './routes/orders.routes';
-import deliveryRoutes from './routes/delivery.routes';
 import paymentRoutes from './routes/payments.routes';
 import adminRoutes from './routes/admin.routes';
-import notificationRoutes from './routes/notifications.routes';
+import { deliveryRoutes } from './routes/delivery.routes';
+import { notificationsRoutes } from './routes/notifications.routes';
+import { supportRoutes } from './routes/support.routes';
 import locationRoutes from './routes/location.routes';
 
 export const app = express();
@@ -49,7 +50,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/support', supportRoutes);
 app.use('/api/location', locationRoutes);
 
 // Health check endpoint

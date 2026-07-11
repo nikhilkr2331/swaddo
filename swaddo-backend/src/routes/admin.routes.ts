@@ -222,4 +222,59 @@ router.post('/notifications/send', async (req: Request, res: Response) => {
   }
 });
 
+// 7. Support System
+router.get('/support/tickets', async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT t.*, u.name as user_name, u.phone_number 
+      FROM support_tickets t 
+      JOIN users u ON t.user_id = u.id 
+      ORDER BY t.updated_at DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error fetching admin tickets', error);
+    res.status(500).json({ message: 'Error fetching tickets' });
+  }
+});
+
+router.post('/support/tickets/:id/reply', async (req: Request, res: Response) => {
+  try {
+    const ticketId = req.params.id;
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message is required' });
+
+    // Ensure ticket exists
+    const ticketRes = await pool.query('SELECT status FROM support_tickets WHERE id = $1', [ticketId]);
+    if (ticketRes.rows.length === 0) return res.status(404).json({ error: 'Ticket not found' });
+
+    const result = await pool.query(
+      'INSERT INTO support_messages (ticket_id, sender_type, message) VALUES ($1, $2, $3) RETURNING *',
+      [ticketId, 'admin', message]
+    );
+
+    await pool.query('UPDATE support_tickets SET updated_at = CURRENT_TIMESTAMP WHERE id = $1', [ticketId]);
+
+    // Broadcast to the support room so the user sees it instantly
+    req.app.get('io').to(`support_${ticketId}`).emit('support_message', result.rows[0]);
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    logger.error('Error sending admin reply', error);
+    res.status(500).json({ message: 'Error sending reply' });
+  }
+});
+
+router.patch('/support/tickets/:id/status', async (req: Request, res: Response) => {
+  try {
+    const ticketId = req.params.id;
+    const { status } = req.body; // 'open' or 'closed'
+    
+    await pool.query('UPDATE support_tickets SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [status, ticketId]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating status' });
+  }
+});
+
 export default router;

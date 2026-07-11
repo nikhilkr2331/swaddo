@@ -422,18 +422,20 @@ export default function Profile() {
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block tracking-wider">Phone Number</label>
                   <div className="flex">
-                    <div className="bg-gray-100 border border-gray-200 border-r-0 rounded-l-xl px-4 py-3.5 text-[15px] font-bold text-gray-600 shrink-0">
+                    <div className="bg-gray-100 border border-gray-200 border-r-0 rounded-l-xl px-4 py-3.5 text-[15px] font-bold text-gray-500 shrink-0">
                       +91
                     </div>
                     <input
                       type="tel"
-                      maxLength={10}
                       value={editPhone}
-                      onChange={(e) => setEditPhone(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Enter mobile number"
-                      className="w-full border border-gray-200 bg-gray-50 rounded-r-xl px-4 py-3.5 text-[15px] font-medium outline-none focus:border-primary focus:bg-white transition-colors"
+                      disabled
+                      className="w-full border border-gray-200 bg-gray-100 rounded-r-xl px-4 py-3.5 text-[15px] font-medium outline-none text-gray-500 cursor-not-allowed"
                     />
                   </div>
+                  <p className="text-xs text-orange-600 mt-2 flex items-start gap-1">
+                    <Info size={14} className="shrink-0 mt-0.5" />
+                    <span>Phone number cannot be changed directly. Please contact support.</span>
+                  </p>
                 </div>
               </div>
               <button 
