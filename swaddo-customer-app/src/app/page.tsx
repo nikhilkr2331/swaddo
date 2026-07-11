@@ -257,9 +257,11 @@ export default function Home() {
               )} />
             </div>
             
-            <button onClick={() => router.push("/profile")} className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white relative hover:bg-white/10 transition-colors bg-black/10 shadow-sm shrink-0">
+            <button onClick={() => router.push("/notifications")} className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white relative hover:bg-white/10 transition-colors bg-black/10 shadow-sm shrink-0">
               <Bell size={15} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-yellow-400 rounded-full border border-primary"></span>
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-yellow-400 rounded-full border border-primary"></span>
+              )}
             </button>
           </div>
 

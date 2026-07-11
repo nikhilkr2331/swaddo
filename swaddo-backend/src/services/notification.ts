@@ -34,7 +34,7 @@ export const notificationService = {
       // Save notification to DB
       await client.query(`
         INSERT INTO notifications (user_id, title, body, type, expires_at)
-        VALUES ($1, $2, $3, $4, null)
+        VALUES ($1, $2, $3, $4, NOW() + INTERVAL '24 hours')
       `, [userId, title, body, data?.type || 'system']);
 
       const result = await client.query('SELECT fcm_token FROM users WHERE id = $1', [userId]);
@@ -66,7 +66,7 @@ export const notificationService = {
       if (userId) {
         await client.query(`
           INSERT INTO notifications (user_id, title, body, type, expires_at)
-          VALUES ($1, $2, $3, $4, null)
+          VALUES ($1, $2, $3, $4, NOW() + INTERVAL '24 hours')
         `, [userId, title, body, data?.type || 'system']);
       }
 
@@ -104,7 +104,7 @@ export const notificationService = {
       if (userId) {
         await client.query(`
           INSERT INTO notifications (user_id, title, body, type, expires_at)
-          VALUES ($1, $2, $3, $4, null)
+          VALUES ($1, $2, $3, $4, NOW() + INTERVAL '24 hours')
         `, [userId, title, body, data?.type || 'system']);
       }
 
