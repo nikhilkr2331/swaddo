@@ -102,6 +102,12 @@ export default function Home() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const { currentLocation, latitude, longitude, isLocationLoading } = useLocation();
 
+  const { data: notificationsData } = useSWR('/notifications/inbox', async (url) => {
+    const res = await api.get(url);
+    return res.data;
+  }, { refreshInterval: 60000 });
+  const unreadCount = notificationsData?.filter((n: any) => !n.is_read)?.length || 0;
+  
   // Setup SWR fetcher
   const fetcher = (url: string) => api.get(url).then(res => res.data);
   const { data: stallsData, mutate: mutateStalls, isLoading } = useSWR(
