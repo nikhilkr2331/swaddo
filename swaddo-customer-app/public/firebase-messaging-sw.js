@@ -62,10 +62,13 @@ if (firebaseConfig.apiKey !== "REPLACE_ME") {
 }
 
 // --- PWA Offline Fallback Strategy ---
-const CACHE_NAME = 'swaddo-offline-v2';
+const CACHE_NAME = 'swaddo-offline-v3';
 const OFFLINE_URL = '/offline';
 
 self.addEventListener('install', (event) => {
+  // Force the waiting service worker to become the active service worker.
+  self.skipWaiting();
+
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -73,8 +76,6 @@ self.addEventListener('install', (event) => {
       await cache.add(new Request(OFFLINE_URL, { cache: 'reload' }));
     })()
   );
-  // Force the waiting service worker to become the active service worker.
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
