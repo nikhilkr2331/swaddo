@@ -8,6 +8,9 @@ import { motion } from "framer-motion";
 export default function BottomNav() {
   const pathname = usePathname();
 
+  // Hide on chat screen so input field isn't covered
+  if (pathname?.startsWith('/support/chat')) return null;
+
   const tabs = [
     { name: "Delivery", href: "/", icon: Home },
     { name: "Dining", href: "/dining", icon: UtensilsCrossed },
