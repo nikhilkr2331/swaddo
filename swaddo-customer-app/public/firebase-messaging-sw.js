@@ -24,9 +24,38 @@ if (firebaseConfig.apiKey !== "REPLACE_ME") {
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
       body: payload.notification.body,
-      icon: '/icon.png'
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
+      data: {
+        click_action: payload.data?.click_action || '/'
+      },
+      vibrate: [200, 100, 200, 100, 200, 100, 200]
     };
+  
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+  });
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
+  self.addEventListener('notificationclick', function(event) {
+    console.log('[firebase-messaging-sw.js] Notification click received.');
+    event.notification.close();
+    
+    const clickAction = event.notification.data?.click_action || '/';
+    const targetUrl = new URL(clickAction, self.location.origin).href;
+
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(windowClients) {
+        // Check if there is already a window/tab open with the target URL
+        for (let i = 0; i < windowClients.length; i++) {
+          const client = windowClients[i];
+          if (client.url === targetUrl && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // If not, open a new window
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
+    );
   });
 }

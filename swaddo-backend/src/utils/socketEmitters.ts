@@ -1,6 +1,7 @@
 import { Application } from 'express';
 import { pool } from '../db';
 import { notificationService } from '../services/notification';
+import { getCustomerOrderNotification, getMerchantNotification, getRiderNotification } from './notificationTemplates';
 
 /**
  * Standardized Order Status Enum
@@ -68,22 +69,36 @@ export const emitOrderStatusUpdate = (
       `, [stallId]);
       const vendorUserId = stallRes.rows[0]?.user_id;
 
-      if (customerId && (status === 'accepted' || status === 'out_for_delivery' || status === 'delivered' || status === 'declined' || status === 'cancelled')) {
-        let title = 'Order Update';
-        let body = `Your order status is now: ${status}`;
-        if (status === 'accepted') { title = 'Order Accepted'; body = 'The merchant has started preparing your order!'; }
-        else if (status === 'out_for_delivery') { title = 'Out for Delivery'; body = 'Your food is on the way!'; }
-        else if (status === 'delivered') { title = 'Delivered'; body = 'Enjoy your meal!'; }
+      if (customerId) {
+        // We get extra data from the DB to make the notification personalized
+        const extraRes = await pool.query(`
+          SELECT s.name as stall_name, dp.name as rider_name
+          FROM orders o
+          LEFT JOIN stalls s ON o.stall_id = s.id
+          LEFT JOIN delivery_assignments da ON o.id = da.order_id AND da.status = 'assigned'
+          LEFT JOIN delivery_partners dp ON da.delivery_partner_id = dp.id
+          WHERE o.id = $1
+        `, [orderId]);
         
-        await notificationService.sendToUser(customerId, title, body, { type: 'order_update', orderId: orderId.toString() });
+        const extraData = {
+          stallName: extraRes.rows[0]?.stall_name,
+          riderName: extraRes.rows[0]?.rider_name,
+        };
+
+        const payload = getCustomerOrderNotification(status, orderId.toString(), extraData);
+        if (payload) {
+          await notificationService.sendToUser(customerId, payload.title, payload.body, payload.data);
+        }
       }
 
-      if (vendorUserId && (status === 'placed' || status === 'payment_pending')) {
-        await notificationService.sendToUser(vendorUserId, 'New Order Received', 'You have a new order waiting to be accepted.', { type: 'new_order', orderId: orderId.toString() });
+      if (vendorUserId) {
+        const payload = getMerchantNotification(status, orderId.toString());
+        if (payload) {
+          await notificationService.sendToUser(vendorUserId, payload.title, payload.body, payload.data);
+        }
       }
 
-      // Delivery partner push notification is usually triggered when a job is assigned.
-      // E.g. in services/assignment.ts. We will add a simple trigger here if status === 'assigned'
+      // Delivery partner push notification
       if (status === 'assigned') {
         const assignRes = await pool.query(`
           SELECT dp.user_id 
@@ -92,11 +107,12 @@ export const emitOrderStatusUpdate = (
           WHERE da.order_id = $1 AND da.status = 'assigned'
         `, [orderId]);
         
-        // If it's a broadcast assignment, we'd need to notify all available riders.
-        // For simplicity, we just notify the explicitly assigned one if we found it.
         const riderUserId = assignRes.rows[0]?.user_id;
         if (riderUserId) {
-          await notificationService.sendToUser(riderUserId, 'New Delivery Assigned', 'You have a new order to pick up.', { type: 'new_delivery', orderId: orderId.toString() });
+          const payload = getRiderNotification(status, orderId.toString());
+          if (payload) {
+            await notificationService.sendToUser(riderUserId, payload.title, payload.body, payload.data);
+          }
         }
       }
 

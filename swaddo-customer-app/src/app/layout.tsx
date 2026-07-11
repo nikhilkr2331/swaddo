@@ -10,6 +10,7 @@ import PageTransitionWrapper from "@/components/PageTransitionWrapper";
 import SplashScreen from "@/components/SplashScreen";
 import PWARegister from "@/components/PWARegister";
 import SWRProvider from "@/components/SWRProvider";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const poppins = Poppins({ 
@@ -49,9 +50,19 @@ export default function RootLayout({
                 {children}
               </PageTransitionWrapper>
             </main>
-            {/* Notification Listener */}
+            {/* Background Handlers */}
             <NotificationListener />
             <PWARegister />
+            <Toaster position="top-center" toastOptions={{
+              duration: 5000,
+              style: {
+                background: '#333',
+                color: '#fff',
+                borderRadius: '12px',
+                padding: '16px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              },
+            }} />
 
             {/* Bottom Nav for Mobile */}
             <BottomNav />
