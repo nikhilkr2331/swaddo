@@ -4,6 +4,7 @@ import { app } from './app';
 import { logger } from './utils/logger';
 import { setupWorkers } from './services/queue';
 import dotenv from 'dotenv';
+import { pool } from './db';
 
 dotenv.config();
 
@@ -62,6 +63,22 @@ io.on('connection', (socket) => {
 // Setup mock background workers
 setupWorkers();
 
-server.listen(PORT, () => {
-  logger.info(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+// Auto-migrate FCM columns on startup to fix Render DB issues
+const migrateDB = async () => {
+  try {
+    const client = await pool.connect();
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS fcm_token TEXT;`);
+    await client.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS fcm_token TEXT;`);
+    await client.query(`ALTER TABLE delivery_partners ADD COLUMN IF NOT EXISTS fcm_token TEXT;`);
+    client.release();
+    logger.info('Database FCM columns migrated successfully.');
+  } catch (error) {
+    logger.error('Database migration failed:', error);
+  }
+};
+
+migrateDB().then(() => {
+  server.listen(PORT, () => {
+    logger.info(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+  });
 });
