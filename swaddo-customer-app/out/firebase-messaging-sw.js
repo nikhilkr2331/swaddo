@@ -62,10 +62,13 @@ if (firebaseConfig.apiKey !== "REPLACE_ME") {
 }
 
 // --- PWA Offline Fallback Strategy ---
-const CACHE_NAME = 'swaddo-offline-v1';
+const CACHE_NAME = 'swaddo-offline-v3';
 const OFFLINE_URL = '/offline';
 
 self.addEventListener('install', (event) => {
+  // Force the waiting service worker to become the active service worker.
+  self.skipWaiting();
+
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -73,13 +76,22 @@ self.addEventListener('install', (event) => {
       await cache.add(new Request(OFFLINE_URL, { cache: 'reload' }));
     })()
   );
-  // Force the waiting service worker to become the active service worker.
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
+      // Clear old caches to ensure the app updates
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME && cacheName.startsWith('swaddo-offline')) {
+            console.log('[Service Worker] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+      
       // Enable navigation preload if it's supported
       if ('navigationPreload' in self.registration) {
         await self.registration.navigationPreload.enable();

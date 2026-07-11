@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, MapPin, Wallet, CreditCard, Banknote, ChevronDown, ChevronUp, Loader2, Info, X, Search, LocateFixed, Check, Home, Briefcase } from "lucide-react";
+import { ArrowLeft, MapPin, Wallet, CreditCard, Banknote, ChevronDown, ChevronUp, Loader2, Info, X, Search, LocateFixed, Check, Home, Briefcase, Receipt, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
@@ -729,16 +729,19 @@ export default function Checkout() {
             </AnimatePresence>
           </div>
 
-          <div className="bg-white rounded-[24px] border border-transparent shadow-native p-5">
-            <h3 className="font-heading font-black text-text-primary text-[16px] mb-4 uppercase tracking-tight">Bill Summary</h3>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40"></div>
+            <h3 className="font-heading font-black text-text-primary text-[16px] mb-5 uppercase tracking-tight flex items-center gap-2">
+              <Receipt size={18} className="text-primary"/> Bill Summary
+            </h3>
             
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-sm font-medium">
               <div className="flex justify-between text-text-primary">
                 <span>Item Total</span>
                 <span>₹{cartTotal}</span>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between text-green-600 font-bold">
+                <div className="flex justify-between text-green-600 font-bold bg-green-50 p-2 rounded-lg -mx-2 px-2">
                   <span>Offer Discount</span>
                   <span>-₹{discountAmount}</span>
                 </div>
@@ -752,10 +755,15 @@ export default function Checkout() {
                 <span>₹{deliveryFee}</span>
               </div>
               
-              <div className="border-t border-border-subtle pt-3 mt-3 flex justify-between font-bold text-text-primary text-lg">
+              <div className="border-t border-dashed border-gray-300 pt-4 mt-4 flex justify-between font-black text-text-primary text-xl">
                 <span>To Pay</span>
                 <span>₹{finalTotal}</span>
               </div>
+            </div>
+            
+            <div className="mt-5 bg-primary/5 rounded-xl p-3 flex items-start gap-3 border border-primary/10">
+               <ShieldCheck size={20} className="text-primary shrink-0 mt-0.5" />
+               <p className="text-[11px] text-text-muted font-medium leading-relaxed">Safe and secure payments. 100% Authentic and fresh products delivered.</p>
             </div>
           </div>
 
