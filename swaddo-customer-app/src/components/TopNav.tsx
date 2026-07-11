@@ -4,9 +4,18 @@ import { ShoppingCart, User, Search, MapPin, ChevronDown, Bell } from "lucide-re
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import LocationSelector from "./LocationSelector";
+import useSWR from "swr";
+import { api } from "@/lib/api";
 
 export default function TopNav() {
   const { cartItemCount } = useCart();
+  const { data: notifications } = useSWR('/notifications/inbox', async (url) => {
+    const res = await api.get(url);
+    return res.data;
+  }, { refreshInterval: 60000 }); // Refresh every minute
+
+  const unreadCount = notifications?.filter((n: any) => !n.is_read)?.length || 0;
+
   return (
     <div className="hidden xl:flex fixed top-0 w-full h-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] z-50 px-8 items-center justify-between">
       
@@ -38,10 +47,12 @@ export default function TopNav() {
 
       {/* Right Icons */}
       <div className="flex items-center gap-6">
-        <button className="relative text-text-primary hover:text-primary transition-colors">
+        <Link href="/notifications" className="relative text-text-primary hover:text-primary transition-colors">
           <Bell size={22} />
-          <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
-        </button>
+          {unreadCount > 0 && (
+            <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
+          )}
+        </Link>
 
         <Link href="/cart" className="relative text-text-primary hover:text-primary transition-colors">
           <ShoppingCart size={24} />

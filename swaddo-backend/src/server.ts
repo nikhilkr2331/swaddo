@@ -70,8 +70,23 @@ const migrateDB = async () => {
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS fcm_token TEXT;`);
     await client.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS fcm_token TEXT;`);
     await client.query(`ALTER TABLE delivery_partners ADD COLUMN IF NOT EXISTS fcm_token TEXT;`);
+    
+    // Create notifications table for history
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER, -- Can be customer, vendor, or rider
+        title VARCHAR(255) NOT NULL,
+        body TEXT NOT NULL,
+        type VARCHAR(50) DEFAULT 'system',
+        is_read BOOLEAN DEFAULT false,
+        expires_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
     client.release();
-    logger.info('Database FCM columns migrated successfully.');
+    logger.info('Database FCM columns & notifications table migrated successfully.');
   } catch (error) {
     logger.error('Database migration failed:', error);
   }

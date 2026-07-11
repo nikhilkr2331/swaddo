@@ -155,17 +155,67 @@ router.patch('/riders/:id/kyc', async (req: Request, res: Response) => {
 });
 
 // 6. Broadcast Notifications
+import { notificationService } from '../services/notification';
+
 router.post('/notifications/send', async (req: Request, res: Response) => {
   try {
-    const { title, message } = req.body;
+    const { title, message, segment, imageUrl } = req.body;
     if (!title || !message) {
       return res.status(400).json({ message: 'Title and message are required' });
     }
     
-    // Broadcast via socket to all connected customer apps
+    let query = '';
+    // Select users based on segment
+    if (segment === 'customers') {
+      query = `SELECT id, fcm_token FROM users`;
+    } else if (segment === 'merchants') {
+      query = `SELECT u.id, u.fcm_token FROM users u JOIN vendors v ON u.id = v.user_id`;
+    } else if (segment === 'riders') {
+      query = `SELECT u.id, u.fcm_token FROM users u JOIN delivery_partners dp ON u.id = dp.user_id`;
+    } else {
+      // all
+      query = `SELECT id, fcm_token FROM users`;
+    }
+
+    const result = await pool.query(query);
+    const users = result.rows;
+
+    if (users.length === 0) {
+      return res.status(200).json({ success: true, message: 'No users found to broadcast.', count: 0 });
+    }
+
+    // Insert notifications in DB with 24h expiry
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const insertQuery = `
+        INSERT INTO notifications (user_id, title, body, type, expires_at)
+        VALUES ($1, $2, $3, $4, NOW() + INTERVAL '24 hours')
+      `;
+      for (const u of users) {
+        await client.query(insertQuery, [u.id, title, message, 'promo']);
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      logger.error('DB Insert failed for broadcast', err);
+    } finally {
+      client.release();
+    }
+
+    // Send push via Firebase (fire and forget for now, but ideally background job)
+    const tokens = users.map(u => u.fcm_token).filter(Boolean);
+    if (tokens.length > 0) {
+       notificationService.broadcastToTokens(tokens, title, message, {
+         type: 'broadcast',
+         imageUrl: imageUrl || ''
+       }).catch(console.error);
+    }
+
+    // Also broadcast via socket for those who have the app open
     req.app.get('io').emit('admin_notification', { title, message });
     
-    res.json({ success: true, message: 'Notification broadcasted successfully' });
+    res.json({ success: true, message: 'Notification broadcasted successfully', count: tokens.length });
   } catch (error) {
     logger.error('Error broadcasting notification', error);
     res.status(500).json({ message: 'Error broadcasting notification' });

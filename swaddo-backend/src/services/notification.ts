@@ -30,6 +30,13 @@ export const notificationService = {
   async sendToUser(userId: number, title: string, body: string, data?: any) {
     try {
       const client = await pool.connect();
+      
+      // Save notification to DB
+      await client.query(`
+        INSERT INTO notifications (user_id, title, body, type, expires_at)
+        VALUES ($1, $2, $3, $4, null)
+      `, [userId, title, body, data?.type || 'system']);
+
       const result = await client.query('SELECT fcm_token FROM users WHERE id = $1', [userId]);
       client.release();
       
@@ -52,6 +59,17 @@ export const notificationService = {
   async sendToVendor(vendorId: number, title: string, body: string, data?: any) {
     try {
       const client = await pool.connect();
+      
+      const vendorRes = await client.query('SELECT user_id FROM vendors WHERE id = $1', [vendorId]);
+      const userId = vendorRes.rows[0]?.user_id;
+
+      if (userId) {
+        await client.query(`
+          INSERT INTO notifications (user_id, title, body, type, expires_at)
+          VALUES ($1, $2, $3, $4, null)
+        `, [userId, title, body, data?.type || 'system']);
+      }
+
       const result = await client.query(`
         SELECT u.fcm_token 
         FROM users u 
@@ -79,6 +97,17 @@ export const notificationService = {
   async sendToRider(riderId: number, title: string, body: string, data?: any) {
     try {
       const client = await pool.connect();
+
+      const riderRes = await client.query('SELECT user_id FROM delivery_partners WHERE id = $1', [riderId]);
+      const userId = riderRes.rows[0]?.user_id;
+
+      if (userId) {
+        await client.query(`
+          INSERT INTO notifications (user_id, title, body, type, expires_at)
+          VALUES ($1, $2, $3, $4, null)
+        `, [userId, title, body, data?.type || 'system']);
+      }
+
       const result = await client.query(`
         SELECT u.fcm_token 
         FROM users u 
